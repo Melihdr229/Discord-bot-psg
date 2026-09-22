@@ -235,7 +235,7 @@ async def rastgele_kadro(ctx):
 @bot.command(name="maç-yap")
 async def mac_yap(ctx, rakip_uye: discord.Member = None):
     takim1 = ctx.author.name
-    takim2 = rakip_uva.name if rakip_uye else "Yapay Zeka Galaktik Karması"
+    takim2 = rakip_uye.name if rakip_uye else "Yapay Zeka Galaktik Karması"
     
     msg = await ctx.send(f"🏟️ **{takim1}** ile **{takim2}** arasında büyük maç simülasyonu başlasın! Hakem düdüğü çaldı...")
     await asyncio.sleep(2)
@@ -263,7 +263,7 @@ async def mac_yap(ctx, rakip_uye: discord.Member = None):
         color=discord.Color.gold()
     )
     if skor1 > skor2:
-        embed.set_footer(text=f"Kazanan taraf muhteşem taktiğiyle {takim1 oldu! 👑}")
+        embed.set_footer(text=f"Kazanan taraf muhteşem taktiğiyle {takim1} oldu! 👑")
     elif skor2 > skor1:
         embed.set_footer(text=f"Kazanan taraf {takim2} oldu! 🏅")
     else:
