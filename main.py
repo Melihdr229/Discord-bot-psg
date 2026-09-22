@@ -17,6 +17,7 @@ user_xp = {}
 ses_xp = {}          
 ses_takip = {}       
 sunucu_autorol = {}  
+kilitli_odalilar = set()  
 aktif_tahminler = {}  
 afk_kullanicilar = {}  
 uyari_veritabani = {}  
@@ -68,11 +69,38 @@ async def on_member_join(member):
         embed.set_thumbnail(url=member.avatar.url if member.avatar else member.default_avatar.url)
         await channel.send(embed=embed)
 
-# --- 2. SES KANALI OLUŞTURUCU VE SES SEVİYESİ (XP) TAKİBİ ---
+# --- 2. MODERATÖR LOG: SİLİNEN MESAJLAR ---
+@bot.event
+async def on_message_delete(message):
+    if message.author.bot or not message.guild:
+        return
+    
+    log_kanal = discord.utils.get(message.guild.text_channels, name="mod-log")
+    if log_kanal:
+        embed = discord.Embed(
+            title="🗑️ Mesaj Silindi",
+            description=f"**Kanal:** {message.channel.mention}\n**Yazan:** {message.author.mention}\n**İçerik:** `{message.content or 'İçerik yok (Fotoğraf/Dosya olabilir)'}`",
+            color=discord.Color.red()
+        )
+        embed.set_footer(text=f"Kullanıcı ID: {message.author.id}")
+        await log_kanal.send(embed=embed)
+
+# --- 3. SES KANALI VE LOG TAKİBİ ---
 @bot.event
 async def on_voice_state_update(member, before, after):
     if member.bot:
         return
+
+    log_kanal = discord.utils.get(member.guild.text_channels, name="mod-log")
+
+    # Ses kanalı hareket logu
+    if log_kanal:
+        if before.channel is None and after.channel is not None:
+            await log_kanal.send(embed=discord.Embed(title="🔊 Ses Kanalına Girdi", description=f"{member.mention} kullanıcısı **{after.channel.name}** kanalına katıldı.", color=discord.Color.blue()))
+        elif before.channel is not None and after.channel is None:
+            await log_kanal.send(embed=discord.Embed(title="🔇 Ses Kanalından Ayrıldı", description=f"{member.mention} kullanıcısı **{before.channel.name}** kanalından ayrıldı.", color=discord.Color.dark_gray()))
+        elif before.channel != after.channel:
+            await log_kanal.send(embed=discord.Embed(title="🔀 Ses Kanalı Değiştirdi", description=f"{member.mention} kullanıcısı **{before.channel.name}** kanalından **{after.channel.name}** kanalına geçiş yaptı.", color=discord.Color.gold()))
 
     if after.channel and after.channel.name == "➕ Oda Oluştur":
         guild = member.guild
@@ -87,6 +115,8 @@ async def on_voice_state_update(member, before, after):
         try:
             await bot.wait_for('voice_state_update', check=check, timeout=86400)
             if len(yeni_kanal.members) == 0:
+                if yeni_kanal.id in kilitli_odalilar:
+                    kilitli_odalilar.remove(yeni_kanal.id)
                 await yeni_kanal.delete()
         except:
             pass
@@ -107,7 +137,7 @@ async def on_voice_state_update(member, before, after):
                 ses_xp[member.id] = ses_xp.get(member.id, 0) + kazanilan_ses_xp
             del ses_takip[member.id]
 
-# --- 3. MESAJ KONTROLÜ ---
+# --- 4. MESAJ KONTROLÜ VE KÜFÜR FİLTRESİ ---
 @bot.event
 async def on_message(message):
     global mesaj_sayaci
@@ -165,7 +195,7 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-# --- 4. YARDIM MENÜSÜ ---
+# --- 5. YARDIM MENÜSÜ ---
 @bot.command(name="yardim")
 async def yardim(ctx):
     embed = discord.Embed(
@@ -174,47 +204,87 @@ async def yardim(ctx):
         color=discord.Color.green()
     )
     embed.add_field(name="!yardim", value="Komutları listeler.", inline=False)
-    embed.add_field(name="!git <ses kanalı adı>", value="Boşsa direkt gider, doluysa odadakilere emoji onay talebi gönderir.", inline=False)
-    embed.add_field(name="!ses-seviye [@kullanıcı]", value="Ses kanalı aktiflik puanını gösterir.", inline=False)
-    embed.add_field(name="!kadro-kur [pozisyon]", value="20 TL bütçe ile dünya karması kadro kurma oyunu! (!kadro-kur kaleci/defans/orta/forvet)", inline=False)
-    embed.add_field(name="!rastgele-kadro", value="Şansına rastgele bir 11 kurar.", inline=False)
-    embed.add_field(name="!rol-mesaj @Rol <mesaj>", value="Roldeki herkese özelden mesaj atar (Yönetici).", inline=False)
+    embed.add_field(name="!oda-kapat / !oda-aç", value="Özel ses odasını kilitler/açar.", inline=False)
+    embed.add_field(name="!sayaç", value="Sunucu üye hedefini gösterir.", inline=False)
+    embed.add_field(name="!autorol-ayarla <rol>", value="Oto-rolü ayarlar (Yönetici).", inline=False)
+    embed.add_field(name="!git <ses kanalı>", value="Odaya gider veya emoji onayı ister.", inline=False)
+    embed.add_field(name="!ses-seviye [@kullanıcı]", value="Ses aktiflik puanını gösterir.", inline=False)
+    embed.add_field(name="!kadro-kur [pozisyon]", value="20 TL bütçeli futbol kadro oyunu.", inline=False)
+    embed.add_field(name="!rastgele-kadro", value="Rastgele 11 kurar.", inline=False)
+    embed.add_field(name="!rol-mesaj @Rol <mesaj>", value="Roldeki herkese DM atar (Yönetici).", inline=False)
     embed.add_field(name="!afk <sebep>", value="Uzakta moduna geçiş.", inline=False)
     embed.add_field(name="!öneri <mesaj>", value="Öneri gönderir.", inline=False)
-    embed.add_field(name="!tahmin", value="Sayı tahmin oyunu başlatır.", inline=False)
+    embed.add_field(name="!tahmin", value="Sayı tahmin oyunu.", inline=False)
     embed.add_field(name="!çekiliş <saniye> <ödül>", value="Çekiliş başlatır (Yönetici).", inline=False)
-    embed.add_field(name="!profil [@kullanıcı]", value="Kullanıcı profili gösterir.", inline=False)
-    embed.add_field(name="!kullanıcı-bilgi [@kullanıcı]", value="Detaylı kullanıcı bilgisi gösterir.", inline=False)
-    embed.add_field(name="!seviye", value="Yazışma Seviye ve XP gösterir.", inline=False)
-    embed.add_field(name="!sunucu-bilgi", value="Sunucu bilgilerini gösterir.", inline=False)
+    embed.add_field(name="!profil / !kullanıcı-bilgi", value="Kullanıcı profili ve detayları.", inline=False)
+    embed.add_field(name="!sunucu-bilgi", value="Sunucu bilgileri.", inline=False)
     embed.add_field(name="!zar / !yazıtura", value="Eğlence komutları.", inline=False)
-    embed.add_field(name="!uyarı @kullanıcı <sebep>", value="Kullanıcıyı uyarır (Yönetici).", inline=False)
-    embed.add_field(name="!uyarılar @kullanıcı", value="Uyarı geçmişini gösterir (Yönetici).", inline=False)
-    embed.add_field(name="!uyarı-sil @kullanıcı", value="Kullanıcının son uyarısını siler (Yönetici).", inline=False)
+    embed.add_field(name="!uyarı / !uyarılar / !uyarı-sil", value="Uyarı yönetim sistemi.", inline=False)
     embed.add_field(name="!yavaşmod <saniye>", value="Kanalı yavaş moda alır (Yönetici).", inline=False)
     embed.add_field(name="!kilit / !aç", value="Kanalı kilitler/açar (Yönetici).", inline=False)
-    embed.add_field(name="!autorol <rol>", value="Otomatik rol ayarlar (Yönetici).", inline=False)
     embed.add_field(name="!kanal-aç <isim>", value="Kanal açar (Yönetici).", inline=False)
     embed.add_field(name="!sil <sayı>", value="Mesaj siler (Yönetici).", inline=False)
     embed.add_field(name="!kick / !ban", value="Üye atar/yasaklar (Yönetici).", inline=False)
     await ctx.send(embed=embed)
 
-# --- 5. SES KANALINA GİTME VE EMOJİ ONAY SİSTEMİ (!git) ---
+# --- 6. ÖZEL ODA VE SAYAÇ KOMUTLARI ---
+@bot.command(name="oda-kapat")
+async def oda_kapat(ctx):
+    if ctx.author.voice and ctx.author.voice.channel:
+        kanal = ctx.author.voice.channel
+        await kanal.set_permissions(ctx.guild.default_role, connect=False)
+        kilitli_odalilar.add(kanal.id)
+        await ctx.send(f"🔒 **{kanal.name}** odası dışarıdan gelenlere kapatıldı!")
+    else:
+        await ctx.send("❌ Önce kendi ses odana girmelisin!")
+
+@bot.command(name="oda-aç")
+async def oda_ac_komut(ctx):
+    if ctx.author.voice and ctx.author.voice.channel:
+        kanal = ctx.author.voice.channel
+        await kanal.set_permissions(ctx.guild.default_role, connect=True)
+        if kanal.id in kilitli_odalilar:
+            kilitli_odalilar.remove(kanal.id)
+        await ctx.send(f"🔓 **{kanal.name}** odası yeniden herkese açıldı!")
+    else:
+        await ctx.send("❌ Önce kendi ses odana girmelisin!")
+
+@bot.command(name="sayaç")
+async def sayac(ctx):
+    g = ctx.guild
+    uye_sayisi = g.member_count
+    hedef = 100 
+    kalan = max(0, hedef - uye_sayisi)
+    embed = discord.Embed(
+        title="📊 Sunucu Sayaç & Hedef Durumu",
+        description=f"👥 **Toplam Üye:** {uye_sayisi}\n🎯 **Hedef Üye:** {hedef}\n⏳ **Hedefe Kalan:** {kalan} kişi",
+        color=discord.Color.teal()
+    )
+    await ctx.send(embed=embed)
+
+@bot.command(name="autorol-ayarla")
+@commands.has_permissions(administrator=True)
+async def autorol_ayarla(ctx, *, rol_adi: str):
+    bulunan_rol = discord.utils.get(ctx.guild.roles, name=rol_adi)
+    if bulunan_rol:
+        sunucu_autorol[ctx.guild.id] = rol_adi
+        await ctx.send(f"✅ Yeni gelenler için otomatik verilecek rol **{rol_adi}** olarak güncellendi!")
+    else:
+        await ctx.send(f"❌ '{rol_adi}' adında bir rol bulunamadı.")
+
+# --- 7. SES KANALINA GİTME VE ONAY ---
 @bot.command(name="git")
 async def git(ctx, *, kanal_adi: str):
     hedef_kanal = discord.utils.get(ctx.guild.voice_channels, name=kanal_adi)
-    
     if not hedef_kanal:
         await ctx.send(f"❌ '{kanal_adi}' adında bir ses kanalı bulunamadı!")
         return
 
     hedef_uye = ctx.message.mentions[0] if ctx.message.mentions else ctx.author
-
     if not hedef_uye.voice:
         await ctx.send(f"❌ {hedef_uye.mention} herhangi bir ses kanalında değil!")
         return
 
-    # Eğer hedef ses kanalında kimse yoksa direkt taşıyalım
     if len(hedef_kanal.members) == 0:
         try:
             await hedef_uye.move_to(hedef_kanal)
@@ -223,7 +293,6 @@ async def git(ctx, *, kanal_adi: str):
             await ctx.send(f"⚠️ Taşıma hatası: `{e}`")
         return
 
-    # Eğer kanal DOLUYSA, odadakilerin onay vermesi için mesaj atıp emoji ekleyelim
     embed = discord.Embed(
         title="🚪 Odaya Giriş Talebi",
         description=f"**{hedef_uye.name}**, **{hedef_kanal.name}** odasına girmek istiyor!\nOdadakilerden biri onaylamak için ✅ emojisine tıklasın.",
@@ -233,7 +302,6 @@ async def git(ctx, *, kanal_adi: str):
     await talep_mesaji.add_reaction("✅")
 
     def check(reaction, user):
-        # Emojiyi basan kişi bot olmamalı ve hedef kanaldaki üyelerden biri olmalı
         return not user.bot and str(reaction.emoji) == "✅" and user in hedef_kanal.members
 
     try:
@@ -243,70 +311,58 @@ async def git(ctx, *, kanal_adi: str):
     except asyncio.TimeoutError:
         await ctx.send(f"⏱️ Süre doldu, **{hedef_kanal.name}** odasından kimse onay vermedi.")
 
-# --- 6. SES SEVİYESİ / AKTİFLİK KOMUTU ---
+# --- 8. DİĞER KOMUTLAR ---
 @bot.command(name="ses-seviye")
 async def ses_seviye(ctx, member: discord.Member = None):
     member = member or ctx.author
     puan = ses_xp.get(member.id, 0)
-    embed = discord.Embed(title=f"🔊 {member.name} - Ses Seviyesi Bilgisi", color=discord.Color.blue())
-    embed.add_field(name="Toplam Ses Puanı", value=f"{puan} Puan", inline=True)
-    await ctx.send(embed=embed)
+    await ctx.send(embed=discord.Embed(title=f"🔊 {member.name} - Ses Puanı", description=f"{puan} Puan", color=discord.Color.blue()))
 
-# --- 7. DÜNYA ÇAPINDA KADRO KURMA OYUNU ---
 @bot.command(name="kadro-kur")
 async def kadro_kur(ctx, kategori: str = "genel"):
     kategori = kategori.lower()
     if kategori == "kaleci":
-        embed = discord.Embed(title="🧤 Dünya Çapında Kaleci Havuzu", description="**9 TL:** Neuer, Buffon, Casillas, Yashin, Courtois\n**7 TL:** Alisson, Ter Stegen, Ederson, Oblak\n**5 TL:** Maignan, Emiliano Martinez, Sommer\n**3 TL:** Donnarumma, Ramsdale, Raya, Onana\n**1 TL:** Altay Bayındır, Uğurcan Çakır, Berke Özer", color=discord.Color.blue())
+        desc = "**9 TL:** Neuer, Buffon, Courtois\n**1 TL:** Altay, Uğurcan"
     elif kategori == "defans":
-        embed = discord.Embed(title="🛡️ Dünya Çapında Defans Havuzu", description="**9 TL:** Maldini, Sergio Ramos, Beckenbauer, Roberto Carlos, Cafu\n**7 TL:** Van Dijk, Ruben Dias, Saliba, Pepe\n**5 TL:** Marquinhos, Araujo, Rudiger, Kyle Walker\n**3 TL:** Hakimi, Theo Hernandez, Alexander-Arnold, Kim Min-jae\n**1 TL:** Maguire, Eric Garcia, Çağlar Söyüncü, Kaan Ayhan", color=discord.Color.red())
+        desc = "**9 TL:** Maldini, Ramos\n**1 TL:** Maguire, Çağlar"
     elif kategori == "orta":
-        embed = discord.Embed(title="🎯 Dünya Çapında Orta Saha Havuzu", description="**9 TL:** Zidane, Iniesta, Xavi, Pirlo, Modric, Ronaldinho\n**7 TL:** De Bruyne, Bellingham, Rodri, Kroos, Kaka, Gerrard\n**5 TL:** Valverde, Odegaard, Bruno Fernandes, Kimmich\n**3 TL:** Pedri, Gavi, Barella, Calhanoglu, Szoboszlai\n**1 TL:** Antony, McTominay, Fred, İsmail Yüksek", color=discord.Color.gold())
+        desc = "**9 TL:** Zidane, Iniesta, Modric\n**1 TL:** İsmail Yüksek"
     elif kategori == "forvet":
-        embed = discord.Embed(title="⚡ Dünya Çapında Forvet Havuzu", description="**9 TL:** Messi, Ronaldo (R9), Pelé, Maradona, Mbappé, Haaland\n**7 TL:** Neymar, Vinicius Jr, Salah, Harry Kane, Lewandowski, Henry\n**5 TL:** Son Heung-min, Griezmann, Lautaro, Dybala, Bukayo Saka\n**3 TL:** Osimhen, Rashford, Vlahovic, Barış Alper Yılmaz\n**1 TL:** Werner, Michy Batshuayi, Serdar Dursun, Cenk Tosun", color=discord.Color.purple())
+        desc = "**9 TL:** Messi, Ronaldo, Pelé\n**1 TL:** Cenk Tosun"
     else:
-        embed = discord.Embed(title="⚽ 20 TL ile Dünya Çapında Futbolcu Alışverişi", description="Toplam **20 TL** bütçen var! Pozisyonuna göre detaylı havuz için:\n• `!kadro-kur kaleci`\n• `!kadro-kur defans`\n• `!kadro-kur orta`\n• `!kadro-kur forvet`", color=discord.Color.dark_green())
-    embed.set_footer(text=f"{ctx.author.name} için küresel futbol havuzu yüklendi 💸")
-    await ctx.send(embed=embed)
+        desc = "20 TL bütçen var! Pozisyonlar: `!kadro-kur kaleci/defans/orta/forvet`"
+    await ctx.send(embed=discord.Embed(title="⚽ Futbolcu Havuzu", description=desc, color=discord.Color.dark_green()))
 
 @bot.command(name="rastgele-kadro")
 async def rastgele_kadro(ctx):
-    yildizlar = ["Messi", "Ronaldo (R9)", "Pelé", "Maradona", "Zidane", "Iniesta", "Mbappé", "Haaland", "De Bruyne", "Bellingham", "Vinicius Jr", "Salah", "Modric", "Van Dijk", "Neuer", "Maldini"]
-    secilenler = random.sample(yildizlar, 5)
-    embed = discord.Embed(title="🎲 Dünya Karmasından Rastgele 5'li Joker Kadro", description=f"1. **{secilenler[0]}**\n2. **{secilenler[1]}**\n3. **{secilenler[2]}**\n4. **{secilenler[3]}**\n5. **{secilenler[4]}**", color=discord.Color.orange())
-    await ctx.send(embed=embed)
+    yildizlar = ["Messi", "Ronaldo (R9)", "Pelé", "Maradona", "Zidane", "Iniesta"]
+    secilenler = random.sample(yildizlar, min(5, len(yildizlar)))
+    await ctx.send(embed=discord.Embed(title="🎲 Rastgele Kadro", description="\n".join([f"• {oyuncu}" for oyuncu in secilenler]), color=discord.Color.orange()))
 
-@bot.command(name="kadro-bilgi")
-async def kadro_bilgi(ctx):
-    await ctx.send("ℹ️ **Kadro Kurma Rehberi:** 20 TL bütçeyle kaleci, defans, orta saha ve forvetlerden en iyi dünya karmasını kurmaya çalışırsın.")
-
-# --- 8. DİĞER YÖNETİM VE EĞLENCE KOMUTLARI ---
 @bot.command(name="rol-mesaj")
 @commands.has_permissions(administrator=True)
 async def rol_mesaj(ctx, role: discord.Role, *, mesaj: str):
     await ctx.message.delete()
-    basarili = 0
-    basarisiz = 0
+    sayac = 0
     for member in role.members:
         if not member.bot:
             try:
-                await member.send(f"📩 **{ctx.guild.name}** sunucusundan bir duyuru ({ctx.author.name}):\n\n{mesaj}")
-                basarili += 1
+                await member.send(f"📩 **{ctx.guild.name}** duyurusu:\n\n{mesaj}")
+                sayac += 1
             except:
-                basarisiz += 1
-    await ctx.send(f"✅ **{role.name}** roldeki **{basarili}** kişiye özelden mesaj gönderildi.", delete_after=10)
+                pass
+    await ctx.send(f"✅ {sayac} kişiye özelden mesaj atıldı.", delete_after=10)
 
 @bot.command(name="afk")
 async def afk(ctx, *, sebep="Belirtilmedi"):
     afk_kullanicilar[ctx.author.id] = sebep
-    await ctx.send(f"💤 {ctx.author.mention}, başarıyla AFK moduna geçtin. Sebep: *{sebep}*")
+    await ctx.send(f"💤 {ctx.author.mention} AFK moduna geçti. Sebep: *{sebep}*")
 
 @bot.command(name="çekiliş")
 @commands.has_permissions(administrator=True)
 async def cekilis(ctx, sure: int, *, odul: str):
     await ctx.message.delete()
-    embed = discord.Embed(title="🎉 ÇEKİLİŞ VAR! 🎉", description=f"Ödül: **{odul}**\nKatılmak için 🎉 emojisine tıkla!", color=discord.Color.magenta())
-    embed.set_footer(text=f"Süre: {sure} saniye")
+    embed = discord.Embed(title="🎉 ÇEKİLİŞ!", description=f"Ödül: **{odul}**\nKatılmak için 🎉 emojisine tıkla!", color=discord.Color.magenta())
     msg = await ctx.send(embed=embed)
     await msg.add_reaction("🎉")
     await asyncio.sleep(sure)
@@ -315,57 +371,49 @@ async def cekilis(ctx, sure: int, *, odul: str):
     users = [u for u in await reaction.users().flatten() if not u.bot] if reaction else []
     if users:
         kazanan = random.choice(users)
-        await ctx.send(f"🎊 Tebrikler {kazanan.mention}! **{odul}** çekilişini kazandın! 🏆")
+        await ctx.send(f"🎊 Tebrikler {kazanan.mention}! **{odul}** kazandın!")
     else:
-        await ctx.send("❌ Çekilişe yeterli katılım olmadığından kazanan seçilemedi.")
+        await ctx.send("❌ Yeterli katılım olmadı.")
 
 @bot.command(name="uyarı")
 @commands.has_permissions(manage_messages=True)
 async def uyari(ctx, member: discord.Member, *, sebep="Belirtilmedi"):
     uyari_veritabani.setdefault(member.id, []).append(sebep)
-    await ctx.send(f"⚠️ **{member.name}** uyaraldı! Sebep: {sebep} (Toplam: {len(uyari_veritabani[member.id])})")
+    await ctx.send(f"⚠️ {member.mention} uyarıldı. Sebep: {sebep}")
 
 @bot.command(name="uyarılar")
 @commands.has_permissions(manage_messages=True)
 async def uyarilar(ctx, member: discord.Member):
     sebepler = uyari_veritabani.get(member.id, [])
-    if sebepler:
-        liste = "\n".join([f"{i+1}. {s}" for i, s in enumerate(sebepler)])
-        await ctx.send(embed=discord.Embed(title=f"⚠️ {member.name} - Uyarı Geçmişi", description=liste, color=discord.Color.red()))
-    else:
-        await ctx.send(f"✅ {member.name} adlı kullanıcının hiç uyarısı yok.")
+    liste = "\n".join([f"{i+1}. {s}" for i, s in enumerate(sebepler)]) if sebepler else "Temiz."
+    await ctx.send(embed=discord.Embed(title=f"⚠️ {member.name} Uyarıları", description=liste, color=discord.Color.red()))
 
 @bot.command(name="uyarı-sil")
 @commands.has_permissions(manage_messages=True)
 async def uyari_sil(ctx, member: discord.Member):
     if member.id in uyari_veritabani and uyari_veritabani[member.id]:
         uyari_veritabani[member.id].pop()
-        await ctx.send(f"✅ **{member.name}** kullanıcısının son uyarısı silindi.")
+        await ctx.send(f"✅ {member.name} son uyarısı silindi.")
     else:
-        await ctx.send(f"❌ Silinebilecek uyarı yok.")
+        await ctx.send("❌ Uyarı yok.")
 
 @bot.command(name="yavaşmod")
 @commands.has_permissions(manage_channels=True)
 async def yavasmod(ctx, saniye: int):
     await ctx.channel.slowmode_delay(saniye)
-    await ctx.send(f"⏱️ Yavaş mod **{saniye}** saniye olarak ayarlandı.")
+    await ctx.send(f"⏱️ Yavaş mod {saniye} saniye.")
 
 @bot.command(name="kullanıcı-bilgi")
 async def kullanici_bilgi(ctx, member: discord.Member = None):
     member = member or ctx.author
-    roller = ", ".join([r.mention for r in member.roles[1:]]) or "Rolü yok"
-    embed = discord.Embed(title=f"🔍 Detaylı Bilgi: {member.name}", color=discord.Color.dark_blue())
-    embed.set_thumbnail(url=member.avatar.url if member.avatar else member.default_avatar.url)
-    embed.add_field(name="ID", value=member.id, inline=True)
-    embed.add_field(name="Sunucuya Katılım", value=member.joined_at.strftime("%d/%m/%Y"), inline=True)
-    embed.add_field(name="Roller", value=roller, inline=False)
+    embed = discord.Embed(title=f"🔍 {member.name}", description=f"ID: {member.id}\nKatılım: {member.joined_at.strftime('%d/%m/%Y')}", color=discord.Color.dark_blue())
     await ctx.send(embed=embed)
 
 @bot.command(name="öneri")
 async def oneri(ctx, *, metin: str):
     await ctx.message.delete()
     kanal = discord.utils.get(ctx.guild.text_channels, name="öneri") or ctx.channel
-    gonderilen = await kanal.send(embed=discord.Embed(title="💡 Yeni Öneri", description=metin, color=discord.Color.gold()))
+    gonderilen = await kanal.send(embed=discord.Embed(title="💡 Öneri", description=metin, color=discord.Color.gold()))
     await gonderilen.add_reaction("👍")
     await gonderilen.add_reaction("👎")
 
@@ -384,32 +432,23 @@ async def ac(ctx):
 @bot.command(name="tahmin")
 async def tahmin(ctx):
     aktif_tahminler[ctx.channel.id] = random.randint(1, 100)
-    await ctx.send("🎮 **Sayı Tahmin Oyunu Başladı!** 1-100 arası sayı tuttum, yaz bakalım!")
-
-@bot.command(name="autorol")
-@commands.has_permissions(administrator=True)
-async def autorol(ctx, *, rol_adi: str):
-    if discord.utils.get(ctx.guild.roles, name=rol_adi):
-        sunucu_autorol[ctx.guild.id] = rol_adi
-        await ctx.send(f"✅ Otomarol **{rol_adi}** olarak ayarlandı.")
-    else:
-        await ctx.send(f"❌ Böyle bir rol bulunamadı.")
+    await ctx.send("🎮 Sayı tahmin oyunu başladı (1-100)!")
 
 @bot.command(name="seviye")
 async def seviye(ctx, member: discord.Member = None):
     member = member or ctx.author
     xp = user_xp.get(member.id, 0)
-    await ctx.send(embed=discord.Embed(title=f"⭐ {member.name} - Mesaj Seviyesi", description=f"Toplam XP: {xp} (Seviye: {xp // 100})", color=discord.Color.orange()))
+    await ctx.send(embed=discord.Embed(title=f"⭐ {member.name} Seviye", description=f"XP: {xp} (Seviye: {xp // 100})", color=discord.Color.orange()))
 
 @bot.command(name="sunucu-bilgi")
 async def sunucu_bilgi(ctx):
     g = ctx.guild
-    await ctx.send(embed=discord.Embed(title=f"📊 {g.name}", description=f"Sahip: {g.owner}\nÜye: {g.member_count}\nKanal: {len(g.channels)}", color=discord.Color.purple()))
+    await ctx.send(embed=discord.Embed(title=f"📊 {g.name}", description=f"Sahip: {g.owner}\nÜye: {g.member_count}", color=discord.Color.purple()))
 
 @bot.command(name="profil")
 async def profil(ctx, member: discord.Member = None):
     member = member or ctx.author
-    await ctx.send(embed=embed=discord.Embed(title=f"👤 {member.name}", description=f"Katılım: {member.joined_at.strftime('%d/%m/%Y')}", color=discord.Color.blue()))
+    await ctx.send(embed=discord.Embed(title=f"👤 {member.name}", description=f"Katılım: {member.joined_at.strftime('%d/%m/%Y')}", color=discord.Color.blue()))
 
 @bot.command(name="zar")
 async def zar(ctx):
@@ -423,25 +462,25 @@ async def yazitura(ctx):
 @commands.has_permissions(kick_members=True)
 async def kick(ctx, member: discord.Member, *, sebep="Belirtilmedi"):
     await member.kick(reason=sebep)
-    await ctx.send(f"👢 {member.name} atıldı. Sebep: {sebep}")
+    await ctx.send(f"👢 {member.name} atıldı.")
 
 @bot.command(name="ban")
 @commands.has_permissions(ban_members=True)
 async def ban(ctx, member: discord.Member, *, sebep="Belirtilmedi"):
     await member.ban(reason=sebep)
-    await ctx.send(f"🔨 {member.name} yasaklandı. Sebep: {sebep}")
+    await ctx.send(f"🔨 {member.name} yasaklandı.")
 
 @bot.command(name="kanal-aç")
 @commands.has_permissions(manage_channels=True)
 async def kanal_ac(ctx, *, kanal_adi: str):
     await ctx.guild.create_text_channel(kanal_adi)
-    await ctx.send(f"✅ {kanal_adi} kanalı açıldı!")
+    await ctx.send(f"✅ {kanal_adi} açıldı!")
 
 @bot.command(name="sil")
 @commands.has_permissions(manage_messages=True)
 async def sil(ctx, miktar: int = 5):
     await ctx.channel.purge(limit=miktar + 1)
-    await ctx.send(f"🧹 Son {miktar} mesaj silindi!", delete_after=5)
+    await ctx.send(f"🧹 {miktar} mesaj silindi!", delete_after=5)
 
 keep_alive()
 bot.run(os.environ['DISCORD_TOKEN'])
