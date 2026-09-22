@@ -1,90 +1,70 @@
+import os
 import discord
 from discord.ext import commands
-import os
-import google.generativeai as genai
 from keep_alive import keep_alive
-import yt_dlp
-import asyncio
 
-# Yapay zeka API anahtarın
-genai.configure(api_key="AQ.Ab8RN6KwEvUbtwL6rH1McKBH2lDQqISnSoAtjm57F2j7dVN2EQ")
-model = genai.GenerativeModel('gemini-1.5-flash')
-
+# Botun prefix işareti (!) ve tüm izinleri (Intents)
 intents = discord.Intents.default()
 intents.message_content = True
+intents.members = True
 
-# Prefix (komut ön eki) ! olarak ayarlandı
-bot = commands.Bot(command_prefix='!', intents=intents)
-
-# Müzik ayarları
-ytdl_format_options = {
-    'format': 'bestaudio/best',
-    'noplaylist': True,
-    'quiet': True,
-    'default_search': 'auto',
-    'source_address': '0.0.0.0'
-}
-ffmpeg_options = {'options': '-vn'}
-ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
+bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
-    print(f'{bot.user} olarak giriş yapıldı! Müzik ve Yapay Zeka aktif.')
+    print(f"Giriş yapıldı! Bot aktif: {bot.user}")
 
-# --- YAPAY ZEKA KOMUTU ---
-@bot.command(name='sor')
-async def yapay_zeka(ctx, *, soru: str):
-    async with ctx.typing():
-        try:
-            cevap = model.generate_content(soru)
-            await ctx.reply(cevap.text)
-        except Exception as e:
-            await ctx.reply("Şu an düşünemiyorum, bir hata oluştu.")
+# --- 1. PROFİL / KULLANICI BİLGİSİ ---
+@bot.command(name="profil")
+async def profil(ctx, member: discord.Member = None):
+    member = member or ctx.author
+    embed = discord.Embed(title=f"👤 {member.name} - Kullanıcı Profili", color=discord.Color.blue())
+    embed.set_thumbnail(url=member.avatar.url if member.avatar else member.default_avatar.url)
+    embed.add_field(name="Kullanıcı Adı", value=str(member), inline=True)
+    embed.add_field(name="Sunucuya Katılım", value=member.joined_at.strftime("%d/%m/%Y"), inline=True)
+    embed.add_field(name="Roller", value=", ".join([role.name for role in member.roles[1:]])participation if len(member.roles) > 1 else "Rolü yok", inline=False)
+    await ctx.send(embed=embed)
 
-# --- MÜZİK KOMUTLARI ---
-@bot.command(name='çal')
-async def cal(ctx, *, sarki_adi: str):
-    if not ctx.message.author.voice:
-        await ctx.send("Önce bir ses kanalına katılmalısın!")
-        return
-    
-    kanal = ctx.message.author.voice.channel
-    ses_istemi = ctx.voice_client
-    
-    if ses_istemi is None:
-        ses_istemi = await kanal.connect()
-    elif ses_istemi.channel != kanal:
-        await ses_istemi.move_to(kanal)
-
-    await ctx.send(f"🎵 **{sarki_adi}** aranıyor...")
-    ffmpeg_yolu = './ffmpeg' if os.path.exists('./ffmpeg') else 'ffmpeg'
-
-    try:
-        loop = asyncio.get_event_loop()
-        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(sarki_adi, download=False))
-        
-        if 'entries' in data:
-            data = data['entries'][0]
-            
-        sarki_url = data['url']
-        baslik = data['title']
-        
-        if ses_istemi.is_playing():
-            ses_istemi.stop()
-            
-        ses_istemi.play(discord.FFmpegPCMAudio(sarki_url, executable=ffmpeg_yolu, **ffmpeg_options))
-        await ctx.send(f"🎶 Şu an çalıyor: **{baslik}**")
-    except Exception as e:
-        await ctx.send("Şarkı çalınırken bir hata oluştu.")
-
-@bot.command(name='dur')
-async def dur(ctx):
-    ses_istemi = ctx.voice_client
-    if ses_istemi:
-        await ses_istemi.disconnect()
-        await ctx.send("Ses kanalından ayrıldım.")
+# --- 2. KANAL OLUŞTURMA ---
+@bot.command(name="kanal-aç")
+@commands.has_permissions(manage_channels=True)
+async def kanal_ac(ctx, *, kanal_adi: str):
+    guild = ctx.guild
+    existing_channel = discord.utils.get(guild.channels, name=kanal_adi)
+    if not existing_channel:
+        await guild.create_text_channel(kanal_adi)
+        await ctx.send(f"✅ **{kanal_adi}** adlı metin kanalı başarıyla oluşturuldu!")
     else:
-        await ctx.send("Zaten bir ses kanalında değilim.")
+        await ctx.send(f"⚠️ Bu isimde bir kanal zaten mevcut.")
 
+# --- 3. KANAL SİLME ---
+@bot.command(name="kanal-sil")
+@commands.has_permissions(manage_channels=True)
+async def kanal_sil(ctx, channel: discord.TextChannel = None):
+    channel = channel or ctx.channel
+    await channel.delete()
+
+# --- 4. MESAJ TEMİZLEME (SINIRLAMA/SİLME) ---
+@bot.command(name="sil")
+@commands.has_permissions(manage_messages=True)
+async def sil(ctx, miktar: int = 5):
+    await ctx.channel.purge(limit=miktar + 1)
+    await ctx.send(f"🧹 Son {miktar} mesaj temizlendi!", delete_after=5)
+
+# --- 5. LOG SİSTEMİ (MESAJ SİLME / DÜZENLEME TAKİBİ) ---
+@bot.event
+async def on_message_delete(message):
+    if message.author.bot:
+        return
+    # Sunucuda 'log' isimli bir kanal varsa oraya raporlar
+    log_channel = discord.utils.get(message.guild.text_channels, name="log")
+    if log_channel:
+        embed = discord.Embed(title="🗑️ Mesaj Silindi", color=discord.Color.red())
+        embed.add_field(name="Kullanıcı", value=message.author.mention, inline=True)
+        embed.add_field(name="Kanal", value=message.channel.mention, inline=True)
+        embed.add_field(name="Silinen Mesaj", value=message.content or "İçerik yok (Fotoğraf/Dosya olabilir)", inline=False)
+        await log_channel.send(embed=embed)
+
+# 7/24 açık kalması için web sunucusunu başlat ve botu çalıştır
 keep_alive()
 bot.run(os.environ['DISCORD_TOKEN'])
