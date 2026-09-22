@@ -175,8 +175,9 @@ async def yardim(ctx):
     )
     embed.add_field(name="!yardim", value="Komutları listeler.", inline=False)
     embed.add_field(name="!ses-seviye [@kullanıcı]", value="Ses kanalı aktiflik puanını gösterir.", inline=False)
-    embed.add_field(name="!kadro-kur [pozisyon]", value="20 TL bütçe ile dünyadaki tüm oyuncuların olduğu dev kadro kurma oyunu! (!kadro-kur kaleci/defans/orta/forvet)", inline=False)
+    embed.add_field(name="!kadro-kur [pozisyon]", value="20 TL bütçe ile dünya karması kadro kurma oyunu! (!kadro-kur kaleci/defans/orta/forvet)", inline=False)
     embed.add_field(name="!rastgele-kadro", value="Şansına rastgele bir 11 kurar.", inline=False)
+    embed.add_field(name="!maç-yap [@rakip]", value="Kurduğun kadroyu yapay zeka/rakip takımla maç simülasyonuna sokar!", inline=False)
     embed.add_field(name="!rol-mesaj @Rol <mesaj>", value="Roldeki herkese özelden mesaj atar (Yönetici).", inline=False)
     embed.add_field(name="!afk <sebep>", value="Uzakta moduna geçiş.", inline=False)
     embed.add_field(name="!öneri <mesaj>", value="Öneri gönderir.", inline=False)
@@ -207,62 +208,20 @@ async def ses_seviye(ctx, member: discord.Member = None):
     embed.add_field(name="Toplam Ses Puanı", value=f"{puan} Puan", inline=True)
     await ctx.send(embed=embed)
 
-# --- 6. DÜNYADAKİ TÜM OYUNCULARIN OLDUĞU DEV KADRO KURMA OYUNU ---
+# --- 6. DÜNYA ÇAPINDA KADRO KURMA & MAÇ SİMÜLASYONU ---
 @bot.command(name="kadro-kur")
 async def kadro_kur(ctx, kategori: str = "genel"):
     kategori = kategori.lower()
     if kategori == "kaleci":
-        embed = discord.Embed(
-            title="🧤 Dünya Çapında Kaleci Havuzu",
-            description="**9 TL (Mega Efsaneler/Yıldızlar):** Neuer, Buffon, Casillas, Yashin, Courtois\n\n"
-                        "**7 TL (Dünya Klası):** Alisson, Ter Stegen, Ederson, Oblak, Dida\n\n"
-                        "**5 TL (Üst Düzey):** Maignan, Emiliano Martinez, Manuel Neuer, Szczesny, Sommer\n\n"
-                        "**3 TL (İstikrarlı):** Donnarumma, Ramsdale, Raya, Onana, Kepa\n\n"
-                        "**1 TL (Jokerler):** Altay Bayındır, Uğurcan Çakır, İrfan Can Eğribayat, Berke Özer",
-            color=discord.Color.blue()
-        )
+        embed = discord.Embed(title="🧤 Dünya Çapında Kaleci Havuzu", description="**9 TL:** Neuer, Buffon, Casillas, Yashin, Courtois\n**7 TL:** Alisson, Ter Stegen, Ederson, Oblak\n**5 TL:** Maignan, Emiliano Martinez, Sommer\n**3 TL:** Donnarumma, Ramsdale, Raya, Onana\n**1 TL:** Altay Bayındır, Uğurcan Çakır, Berke Özer", color=discord.Color.blue())
     elif kategori == "defans":
-        embed = discord.Embed(
-            title="🛡️ Dünya Çapında Defans Havuzu",
-            description="**9 TL (Efsane Duvarlar):** Maldini, Sergio Ramos, Franz Beckenbauer, Roberto Carlos, Cafu\n\n"
-                        "**7 TL (Güncel Yıldızlar):** Van Dijk, Ruben Dias, Saliba, Pepe, Thiago Silva\n\n"
-                        "**5 TL (Kaliteliler):** Marquinhos, Araujo, Rudiger, Kyle Walker, Alaba, Cancelo\n\n"
-                        "**3 TL (Sert Stoperler):** Hakimi, Theo Hernandez, Alexander-Arnold, Luke Shaw, Kim Min-jae, Romero\n\n"
-                        "**1 TL (Jokerler):** Maguire, Eric Garcia, Holding, Çağlar Söyüncü, Kaan Ayhan, Serdar Aziz",
-            color=discord.Color.red()
-        )
+        embed = discord.Embed(title="🛡️ Dünya Çapında Defans Havuzu", description="**9 TL:** Maldini, Sergio Ramos, Beckenbauer, Roberto Carlos, Cafu\n**7 TL:** Van Dijk, Ruben Dias, Saliba, Pepe\n**5 TL:** Marquinhos, Araujo, Rudiger, Kyle Walker\n**3 TL:** Hakimi, Theo Hernandez, Alexander-Arnold, Kim Min-jae\n**1 TL:** Maguire, Eric Garcia, Çağlar Söyüncü, Kaan Ayhan", color=discord.Color.red())
     elif kategori == "orta":
-        embed = discord.Embed(
-            title="🎯 Dünya Çapında Orta Saha Havuzu",
-            description="**9 TL (Mozartlar / Maestrolar):** Zidane, Iniesta, Xavi, Pirlo, Modric, Ronaldinho\n\n"
-                        "**7 TL (Dünya Çapı):** De Bruyne, Bellingham, Rodri, Kroos, Kaka, Gerrard, Lampard\n\n"
-                        "**5 TL (Dinamik Güçler):** Valverde, Odegaard, Bruno Fernandes, Kimmich, Goretzka, De Jong\n\n"
-                        "**3 TL (Genç Yetenekler & Yıldızlar):** Pedri, Gavi, Barella, Calhanoglu, Szoboszlai, Mac Allister\n\n"
-                        "**1 TL (Jokerler):** Antony, McTominay, Fred, Salih Özcan, İsmail Yüksek, Berat Özdemir",
-            color=discord.Color.gold()
-        )
+        embed = discord.Embed(title="🎯 Dünya Çapında Orta Saha Havuzu", description="**9 TL:** Zidane, Iniesta, Xavi, Pirlo, Modric, Ronaldinho\n**7 TL:** De Bruyne, Bellingham, Rodri, Kroos, Kaka, Gerrard\n**5 TL:** Valverde, Odegaard, Bruno Fernandes, Kimmich\n**3 TL:** Pedri, Gavi, Barella, Calhanoglu, Szoboszlai\n**1 TL:** Antony, McTominay, Fred, İsmail Yüksek", color=discord.Color.gold())
     elif kategori == "forvet":
-        embed = discord.Embed(
-            title="⚡ Dünya Çapında Forvet Havuzu",
-            description="**9 TL (Tüm Zamanların En İyileri):** Messi, Ronaldo (R9), Pelé, Maradona, Mbappé, Haaland, Cristiano Ronaldo\n\n"
-                        "**7 TL (Hücum Canavarları):** Neymar, Vinicius Jr, Salah, Harry Kane, Lewandowski, Henry, Ibrahimovic\n\n"
-                        "**5 TL (Golcüler):** Son Heung-min, Griezmann, Lautaro Martinez, Dybala, Bukayo Saka, Rafael Leao\n\n"
-                        "**3 TL (Keskin Nişancılar):** Osimhen, Rashford, Vlahovic, Isak, Rodrygo, Thuram, Barış Alper Yılmaz\n\n"
-                        "**1 TL (Jokerler):** Werner, Michy Batshuayi, Serdar Dursun, Umut Nayir, Emre Mor, Cenk Tosun",
-            color=discord.Color.purple()
-        )
+        embed = discord.Embed(title="⚡ Dünya Çapında Forvet Havuzu", description="**9 TL:** Messi, Ronaldo (R9), Pelé, Maradona, Mbappé, Haaland\n**7 TL:** Neymar, Vinicius Jr, Salah, Harry Kane, Lewandowski, Henry\n**5 TL:** Son Heung-min, Griezmann, Lautaro, Dybala, Bukayo Saka\n**3 TL:** Osimhen, Rashford, Vlahovic, Barış Alper Yılmaz\n**1 TL:** Werner, Michy Batshuayi, Serdar Dursun, Cenk Tosun", color=discord.Color.purple())
     else:
-        embed = discord.Embed(
-            title="⚽ 20 TL ile Dünya Çapında Futbolcu Alışverişi",
-            description="Toplam **20 TL** bütçen var! Dünyadaki tüm efsaneler ve güncel yıldızlar arasından seçim yap.\n"
-                        "Kategorilere göz atmak için:\n"
-                        "• `!kadro-kur kaleci`\n"
-                        "• `!kadro-kur defans`\n"
-                        "• `!kadro-kur orta`\n"
-                        "• `!kadro-kur forvet`",
-            color=discord.Color.dark_green()
-        )
-    
+        embed = discord.Embed(title="⚽ 20 TL ile Dünya Çapında Futbolcu Alışverişi", description="Toplam **20 TL** bütçen var! Pozisyonuna göre detaylı havuz için:\n• `!kadro-kur kaleci`\n• `!kadro-kur defans`\n• `!kadro-kur orta`\n• `!kadro-kur forvet`\n\n*Kurduğun kadroyla maç yapmak için:* `!maç-yap`", color=discord.Color.dark_green())
     embed.set_footer(text=f"{ctx.author.name} için küresel futbol havuzu yüklendi 💸")
     await ctx.send(embed=embed)
 
@@ -270,16 +229,51 @@ async def kadro_kur(ctx, kategori: str = "genel"):
 async def rastgele_kadro(ctx):
     yildizlar = ["Messi", "Ronaldo (R9)", "Pelé", "Maradona", "Zidane", "Iniesta", "Mbappé", "Haaland", "De Bruyne", "Bellingham", "Vinicius Jr", "Salah", "Modric", "Van Dijk", "Neuer", "Maldini"]
     secilenler = random.sample(yildizlar, 5)
-    embed = discord.Embed(
-        title="🎲 Dünya Karmasından Rastgele 5'li Joker Kadro",
-        description=f"1. **{secilenler[0]}**\n2. **{secilenler[1]}**\n3. **{secilenler[2]}**\n4. **{secilenler[3]}**\n5. **{secilenler[4]}**",
-        color=discord.Color.orange()
-    )
+    embed = discord.Embed(title="🎲 Dünya Karmasından Rastgele 5'li Joker Kadro", description=f"1. **{secilenler[0]}**\n2. **{secilenler[1]}**\n3. **{secilenler[2]}**\n4. **{secilenler[3]}**\n5. **{secilenler[4]}**", color=discord.Color.orange())
     await ctx.send(embed=embed)
+
+@bot.command(name="maç-yap")
+async def mac_yap(ctx, rakip_uye: discord.Member = None):
+    takim1 = ctx.author.name
+    takim2 = rakip_uva.name if rakip_uye else "Yapay Zeka Galaktik Karması"
+    
+    msg = await ctx.send(f"🏟️ **{takim1}** ile **{takim2}** arasında büyük maç simülasyonu başlasın! Hakem düdüğü çaldı...")
+    await asyncio.sleep(2)
+    
+    skor1 = random.randint(0, 4)
+    skor2 = random.randint(0, 4)
+    
+    dakikalar = [random.randint(1, 89) for _ in range(skor1 + skor2)]
+    dakikalar.sort()
+    
+    olaylar = ""
+    golluk_atanlar = [takim1] * skor1 + [takim2] * skor2
+    random.shuffle(golluk_atanlar)
+    
+    for i, dk in enumerate(dakikalar):
+        atan = golluk_atanlar[i]
+        olaylar += f"⚽ **Dakika {dk}':** GOL! {atan} skoru değiştirdi!\n"
+    
+    if not olaylar:
+        olaylar = "🔒 Maç büyük bir taktik savaşına sahne oldu ve savunmalar geçit vermedi."
+
+    embed = discord.Embed(
+        title="🏆 Maç Sonucu & Simülasyon Raporu",
+        description=f"**{takim1}  {skor1} - {skor2}  {takim2}**\n\n{olaylar}",
+        color=discord.Color.gold()
+    )
+    if skor1 > skor2:
+        embed.set_footer(text=f"Kazanan taraf muhteşem taktiğiyle {takim1 oldu! 👑}")
+    elif skor2 > skor1:
+        embed.set_footer(text=f"Kazanan taraf {takim2} oldu! 🏅")
+    else:
+        embed.set_footer(text="Dengeli geçen mücadelede kazanan çıkmadı, dostluk kazandı! 🤝")
+        
+    await msg.edit(content=None, embed=embed)
 
 @bot.command(name="kadro-bilgi")
 async def kadro_bilgi(ctx):
-    await ctx.send("ℹ️ **Kadro Kurma Rehberi:** 20 TL sanal bütçeyle kaleci, defans, orta saha ve forvetlerden oluşan en iyi dünya karmasını kurmaya çalışırsın.")
+    await ctx.send("ℹ️ **Kadro Kurma Rehberi:** 20 TL bütçeyle kadronu kur, ardından `!maç-yap` veya `!maç-yap @Arkadaşın` komutuyla maç simülasyonunu başlat!")
 
 # --- 7. DİĞER YÖNETİM VE EĞLENCE KOMUTLARI ---
 @bot.command(name="rol-mesaj")
