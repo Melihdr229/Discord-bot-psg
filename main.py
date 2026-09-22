@@ -10,11 +10,27 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents, help_command=None)
 
-# Basit Seviye Sistemi için Hafıza Deposu {user_id: xp}
+# Basit Seviye Sistemi için Hafıza Deposu
 user_xp = {}
 
-# Küfür / Yasaklı Kelime Listesi (İstediğin kelimeyi ekleyebilirsin)
-YASAKLI_KELIMELER = ["küfür1", "küfür2", "zararlıkelime"]
+# Küfür ve Hakaret Filtre Listesi
+YASAKLI_KELIMELER = [
+    "allahı sikeyim", "kuranı sikeyim", "allahı", "kuranı", 
+    "küfür1", "küfür2"
+]
+
+# Güncel Bilgi / Genel Kültür Soruları Havuzu
+GUNCEL_SORULAR = [
+    "🧠 **Günün Bilgi Sorusu:** Türkiye'nin başkenti Ankara hangi yılda resmi başkent ilan edilmiştir? (Cevap için tahminleri alalım!)",
+    "🧠 **Günün Bilgi Sorusu:** Dünyanın en uzun nehri hangisidir?",
+    "🧠 **Günün Bilgi Sorusu:** Osmanlı İmparatorluğu'nun kurucusu Osman Bey'in babası kimdir?",
+    "🧠 **Günün Bilgi Sorusu:** Ay'a ilk ayak basan astronot kimdir ve hangi yıl gerçekleşmiştir?",
+    "🧠 **Günün Bilgi Sorusu:** Kilometre cinsinden Güneş'e en yakın olan gezegen hangisidir?",
+    "🧠 **Günün Bilgi Sorusu:** İstiklal Marşı'mızın şairi Mehmet Akif Ersoy'un şiirlerini topladığı kitabının adı nedir?"
+]
+
+# Mesaj sayacı (Soru sorma sıklığını ayarlamak için)
+mesaj_sayaci = 0
 
 @bot.event
 async def on_ready():
@@ -23,7 +39,6 @@ async def on_ready():
 # --- 1. OTOMATİK ROL VE HOŞ GELDİN MESAJI ---
 @bot.event
 async def on_member_join(member):
-    # Yeni üyeye otomatik "Üye" rolü verme (Sunucunda "Üye" adında bir rol olmalı)
     rol = discord.utils.get(member.guild.roles, name="Üye")
     if rol:
         try:
@@ -31,7 +46,6 @@ async def on_member_join(member):
         except:
             pass
 
-    # Hoş geldin kanalı duyurusu
     channel = discord.utils.get(member.guild.text_channels, name="hosgeldin") or discord.utils.get(member.guild.text_channels, name="giriş")
     if channel:
         embed = discord.Embed(
@@ -42,26 +56,34 @@ async def on_member_join(member):
         embed.set_thumbnail(url=member.avatar.url if member.avatar else member.default_avatar.url)
         await channel.send(embed=embed)
 
-# --- 2. KÜFÜR FİLTRESİ VE XP (SEVİYE) SİSTEMİ ---
+# --- 2. KÜFÜR FİLTRESİ, XP VE RASTGELE SORU SİSTEMİ ---
 @bot.event
 async def on_message(message):
+    global mesaj_sayaci
     if message.author.bot:
         return
 
-    # Küfür / Yasaklı Kelime Kontrolü
+    # Küfür / Yasaklı Kelime Kontrolü (Büyük/küçük harf duyarlılığını önlemek için lower())
     mesaj_icerik = message.content.lower()
     for kelime in YASAKLI_KELIMELER:
         if kelime in mesaj_icerik:
             try:
                 await message.delete()
-                await message.channel.send(f"⚠️ {message.author.mention}, bu sunucuda bu kelimenin kullanılmasına izin verilmiyor!", delete_after=5)
+                await message.channel.send(f"⚠️ {message.author.mention}, bu sunucuda bu tarz küfür ve hakaretlerin kullanılmasına kesinlikle izin verilmiyor!", delete_after=5)
                 return
             except:
                 pass
 
-    # Seviye ve XP Kazanma (Her mesaj başına rastgele 5-15 XP)
+    # Seviye ve XP Kazanma
     user_id = message.author.id
     user_xp[user_id] = user_xp.get(user_id, 0) + random.randint(5, 15)
+
+    # Sohbet Arasında Rastgele Soru Sorma (Her ~15 mesajda bir ihtimalle soru sorar)
+    mesaj_sayaci += 1
+    if mesaj_sayaci >= 15:
+        mesaj_sayaci = 0
+        secilen_soru = random.choice(GUNCEL_SORULAR)
+        await message.channel.send(secilen_soru)
 
     await bot.process_commands(message)
 
@@ -90,7 +112,7 @@ async def yardim(ctx):
 async def seviye(ctx, member: discord.Member = None):
     member = member or ctx.author
     xp = user_xp.get(member.id, 0)
-    seviye_puani = xp // 100  her 100 XP 1 seviye
+    seviye_puani = xp // 100
     
     embed = discord.Embed(title=f"⭐ {member.name} - Seviye Bilgisi", color=discord.Color.orange())
     embed.add_field(name="Toplam XP", value=f"{xp} XP", inline=True)
