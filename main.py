@@ -241,7 +241,6 @@ async def git(ctx, *, kanal_adi: str):
         await ctx.send(f"❌ {hedef_uye.mention} herhangi bir ses kanalında değil!")
         return
 
-    # Eğer hedef ses kanalında kimse yoksa direkt taşıyalım
     if len(hedef_kanal.members) == 0:
         try:
             await hedef_uye.move_to(hedef_kanal)
@@ -250,7 +249,6 @@ async def git(ctx, *, kanal_adi: str):
             await ctx.send(f"⚠️ Taşıma hatası: `{e}`")
         return
 
-    # Eğer kanal doluysa, odadakilerin onay vermesi için mesaj atıp emoji ekleyelim
     embed = discord.Embed(
         title="🚪 Odaya Giriş Talebi",
         description=f"**{hedef_uye.name}**, **{hedef_kanal.name}** odasına girmek istiyor!\nOdadakilerden biri onaylamak için ✅ emojisine tıklasın.",
