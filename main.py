@@ -6,10 +6,10 @@ from discord.ext import commands
 from keep_alive import keep_alive
 import google.generativeai as genai
 
-# Gemini Yapay Zeka Yapılandırması
+# Gemini Yapay Zeka Yapılandırması (gemini-pro modeli ile tamamen kararlı)
 if os.environ.get("GEMINI_API_KEY"):
     genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
-    gemini_model = genai.GenerativeModel('gemini-1.5-flash')
+    gemini_model = genai.GenerativeModel('gemini-pro')
 else:
     gemini_model = None
 
@@ -125,7 +125,6 @@ async def on_message(message):
     # Prefix olmadan Yapay Zeka Yanıtı (Bot etiketlendiğinde çalışır)
     if bot.user.mentioned_in(message):
         if gemini_model:
-            # Mesajdaki bot etiketini temizleyip saf soruyu alalım
             soru = message.content.replace(f'<@!{bot.user.id}>', '').replace(f'<@{bot.user.id}>', '').strip()
             if soru:
                 async with message.channel.typing():
@@ -133,9 +132,9 @@ async def on_message(message):
                         response = gemini_model.generate_content(soru)
                         await message.reply(response.text)
                     except Exception as e:
-                        await message.reply("🤖 Yapay zeka yanıt üretirken bir hata oluştu.")
+                        await message.reply(f"🤖 Yapay zeka yanıt üretirken bir hata oluştu: `{e}`")
         else:
-            await message.reply("⚠️ Yapay zeka API anahtarı (GEMINI_API_KEY) tanımlanmamış!")
+            await message.reply("⚠️ Yapay zeka API anahtarı (GEMINI_API_KEY) Render Environment Variables kısmında tanımlanmamış!")
         return
 
     mesaj_metni = message.content.lower().strip()
@@ -419,7 +418,7 @@ async def kanal_ac(ctx, *, kanal_adi: str):
 
 @bot.command(name="sil")
 @commands.has_permissions(manage_messages=True)
-async def sil(ctx, miktar: int = 5):
+async def sil(ctx, miktar: int, int=5):
     await ctx.channel.purge(limit=miktar + 1)
     await ctx.send(f"🧹 Son {miktar} mesaj silindi!", delete_after=5)
 
