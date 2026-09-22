@@ -79,7 +79,7 @@ async def on_message_delete(message):
     if log_kanal:
         embed = discord.Embed(
             title="🗑️ Mesaj Silindi",
-            description=f"**Kanal:** {message.channel.mention}\n**Yazan:** {message.author.mention}\n**İçerik:** `{message.content or 'İçerik yok (Fotoğraf/Dosya olabilir)'}`",
+            description=f"**Kanal:** {message.channel.mention}\n**Yazan:** {message.author.mention}\n**İçerik:** `{message.content or 'İçerik yok'}`",
             color=discord.Color.red()
         )
         embed.set_footer(text=f"Kullanıcı ID: {message.author.id}")
@@ -93,7 +93,6 @@ async def on_voice_state_update(member, before, after):
 
     log_kanal = discord.utils.get(member.guild.text_channels, name="mod-log")
 
-    # Ses kanalı hareket logu
     if log_kanal:
         if before.channel is None and after.channel is not None:
             await log_kanal.send(embed=discord.Embed(title="🔊 Ses Kanalına Girdi", description=f"{member.mention} kullanıcısı **{after.channel.name}** kanalına katıldı.", color=discord.Color.blue()))
@@ -204,10 +203,10 @@ async def yardim(ctx):
         color=discord.Color.green()
     )
     embed.add_field(name="!yardim", value="Komutları listeler.", inline=False)
+    embed.add_field(name="!git <ses kanalı>", value="Boşsa direkt gider, doluysa odadakilerin ✅ onayından sonra seni içeri alır.", inline=False)
     embed.add_field(name="!oda-kapat / !oda-aç", value="Özel ses odasını kilitler/açar.", inline=False)
     embed.add_field(name="!sayaç", value="Sunucu üye hedefini gösterir.", inline=False)
     embed.add_field(name="!autorol-ayarla <rol>", value="Oto-rolü ayarlar (Yönetici).", inline=False)
-    embed.add_field(name="!git <ses kanalı>", value="Odaya gider veya emoji onayı ister.", inline=False)
     embed.add_field(name="!ses-seviye [@kullanıcı]", value="Ses aktiflik puanını gösterir.", inline=False)
     embed.add_field(name="!kadro-kur [pozisyon]", value="20 TL bütçeli futbol kadro oyunu.", inline=False)
     embed.add_field(name="!rastgele-kadro", value="Rastgele 11 kurar.", inline=False)
@@ -227,7 +226,50 @@ async def yardim(ctx):
     embed.add_field(name="!kick / !ban", value="Üye atar/yasaklar (Yönetici).", inline=False)
     await ctx.send(embed=embed)
 
-# --- 6. ÖZEL ODA VE SAYAÇ KOMUTLARI ---
+# --- 6. SES KANALINA GİTME VE EMOJİ ONAY SİSTEMİ (!git) ---
+@bot.command(name="git")
+async def git(ctx, *, kanal_adi: str):
+    hedef_kanal = discord.utils.get(ctx.guild.voice_channels, name=kanal_adi)
+    
+    if not hedef_kanal:
+        await ctx.send(f"❌ '{kanal_adi}' adında bir ses kanalı bulunamadı!")
+        return
+
+    hedef_uye = ctx.message.mentions[0] if ctx.message.mentions else ctx.author
+
+    if not hedef_uye.voice:
+        await ctx.send(f"❌ {hedef_uye.mention} herhangi bir ses kanalında değil!")
+        return
+
+    # Eğer hedef ses kanalında kimse yoksa direkt taşıyalım
+    if len(hedef_kanal.members) == 0:
+        try:
+            await hedef_uye.move_to(hedef_kanal)
+            await ctx.send(f"✅ {hedef_uye.mention} boş olan **{hedef_kanal.name}** kanalına taşındı!")
+        except Exception as e:
+            await ctx.send(f"⚠️ Taşıma hatası: `{e}`")
+        return
+
+    # Eğer kanal doluysa, odadakilerin onay vermesi için mesaj atıp emoji ekleyelim
+    embed = discord.Embed(
+        title="🚪 Odaya Giriş Talebi",
+        description=f"**{hedef_uye.name}**, **{hedef_kanal.name}** odasına girmek istiyor!\nOdadakilerden biri onaylamak için ✅ emojisine tıklasın.",
+        color=discord.Color.orange()
+    )
+    talep_mesaji = await ctx.send(embed=embed)
+    await talep_mesaji.add_reaction("✅")
+
+    def check(reaction, user):
+        return not user.bot and str(reaction.emoji) == "✅" and user in hedef_kanal.members
+
+    try:
+        reaction, user = await bot.wait_for('reaction_add', timeout=30.0, check=check)
+        await hedef_uye.move_to(hedef_kanal)
+        await ctx.send(f"✅ **{user.name}** onay verdi ve {hedef_uye.mention}, **{hedef_kanal.name}** kanalına alındı!")
+    except asyncio.TimeoutError:
+        await ctx.send(f"⏱️ Süre doldu, **{hedef_kanal.name}** odasından kimse onay vermedi.")
+
+# --- 7. ÖZEL ODA VE SAYAÇ KOMUTLARI ---
 @bot.command(name="oda-kapat")
 async def oda_kapat(ctx):
     if ctx.author.voice and ctx.author.voice.channel:
@@ -271,45 +313,6 @@ async def autorol_ayarla(ctx, *, rol_adi: str):
         await ctx.send(f"✅ Yeni gelenler için otomatik verilecek rol **{rol_adi}** olarak güncellendi!")
     else:
         await ctx.send(f"❌ '{rol_adi}' adında bir rol bulunamadı.")
-
-# --- 7. SES KANALINA GİTME VE ONAY ---
-@bot.command(name="git")
-async def git(ctx, *, kanal_adi: str):
-    hedef_kanal = discord.utils.get(ctx.guild.voice_channels, name=kanal_adi)
-    if not hedef_kanal:
-        await ctx.send(f"❌ '{kanal_adi}' adında bir ses kanalı bulunamadı!")
-        return
-
-    hedef_uye = ctx.message.mentions[0] if ctx.message.mentions else ctx.author
-    if not hedef_uye.voice:
-        await ctx.send(f"❌ {hedef_uye.mention} herhangi bir ses kanalında değil!")
-        return
-
-    if len(hedef_kanal.members) == 0:
-        try:
-            await hedef_uye.move_to(hedef_kanal)
-            await ctx.send(f"✅ {hedef_uye.mention} boş olan **{hedef_kanal.name}** kanalına taşındı!")
-        except Exception as e:
-            await ctx.send(f"⚠️ Taşıma hatası: `{e}`")
-        return
-
-    embed = discord.Embed(
-        title="🚪 Odaya Giriş Talebi",
-        description=f"**{hedef_uye.name}**, **{hedef_kanal.name}** odasına girmek istiyor!\nOdadakilerden biri onaylamak için ✅ emojisine tıklasın.",
-        color=discord.Color.orange()
-    )
-    talep_mesaji = await ctx.send(embed=embed)
-    await talep_mesaji.add_reaction("✅")
-
-    def check(reaction, user):
-        return not user.bot and str(reaction.emoji) == "✅" and user in hedef_kanal.members
-
-    try:
-        reaction, user = await bot.wait_for('reaction_add', timeout=30.0, check=check)
-        await hedef_uye.move_to(hedef_kanal)
-        await ctx.send(f"✅ **{user.name}** onay verdi ve {hedef_uye.mention}, **{hedef_kanal.name}** kanalına alındı!")
-    except asyncio.TimeoutError:
-        await ctx.send(f"⏱️ Süre doldu, **{hedef_kanal.name}** odasından kimse onay vermedi.")
 
 # --- 8. DİĞER KOMUTLAR ---
 @bot.command(name="ses-seviye")
