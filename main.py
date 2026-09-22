@@ -174,6 +174,7 @@ async def yardim(ctx):
         color=discord.Color.green()
     )
     embed.add_field(name="!yardim", value="Komutları listeler.", inline=False)
+    embed.add_field(name="!git <ses kanalı adı>", value="Boşsa direkt gider, doluysa odadakilere emoji onay talebi gönderir.", inline=False)
     embed.add_field(name="!ses-seviye [@kullanıcı]", value="Ses kanalı aktiflik puanını gösterir.", inline=False)
     embed.add_field(name="!kadro-kur [pozisyon]", value="20 TL bütçe ile dünya karması kadro kurma oyunu! (!kadro-kur kaleci/defans/orta/forvet)", inline=False)
     embed.add_field(name="!rastgele-kadro", value="Şansına rastgele bir 11 kurar.", inline=False)
@@ -198,7 +199,51 @@ async def yardim(ctx):
     embed.add_field(name="!kick / !ban", value="Üye atar/yasaklar (Yönetici).", inline=False)
     await ctx.send(embed=embed)
 
-# --- 5. SES SEVİYESİ / AKTİFLİK KOMUTU ---
+# --- 5. SES KANALINA GİTME VE EMOJİ ONAY SİSTEMİ (!git) ---
+@bot.command(name="git")
+async def git(ctx, *, kanal_adi: str):
+    hedef_kanal = discord.utils.get(ctx.guild.voice_channels, name=kanal_adi)
+    
+    if not hedef_kanal:
+        await ctx.send(f"❌ '{kanal_adi}' adında bir ses kanalı bulunamadı!")
+        return
+
+    hedef_uye = ctx.message.mentions[0] if ctx.message.mentions else ctx.author
+
+    if not hedef_uye.voice:
+        await ctx.send(f"❌ {hedef_uye.mention} herhangi bir ses kanalında değil!")
+        return
+
+    # Eğer hedef ses kanalında kimse yoksa direkt taşıyalım
+    if len(hedef_kanal.members) == 0:
+        try:
+            await hedef_uye.move_to(hedef_kanal)
+            await ctx.send(f"✅ {hedef_uye.mention} boş olan **{hedef_kanal.name}** kanalına taşındı!")
+        except Exception as e:
+            await ctx.send(f"⚠️ Taşıma hatası: `{e}`")
+        return
+
+    # Eğer kanal DOLUYSA, odadakilerin onay vermesi için mesaj atıp emoji ekleyelim
+    embed = discord.Embed(
+        title="🚪 Odaya Giriş Talebi",
+        description=f"**{hedef_uye.name}**, **{hedef_kanal.name}** odasına girmek istiyor!\nOdadakilerden biri onaylamak için ✅ emojisine tıklasın.",
+        color=discord.Color.orange()
+    )
+    talep_mesaji = await ctx.send(embed=embed)
+    await talep_mesaji.add_reaction("✅")
+
+    def check(reaction, user):
+        # Emojiyi basan kişi bot olmamalı ve hedef kanaldaki üyelerden biri olmalı
+        return not user.bot and str(reaction.emoji) == "✅" and user in hedef_kanal.members
+
+    try:
+        reaction, user = await bot.wait_for('reaction_add', timeout=30.0, check=check)
+        await hedef_uye.move_to(hedef_kanal)
+        await ctx.send(f"✅ **{user.name}** onay verdi ve {hedef_uye.mention}, **{hedef_kanal.name}** kanalına alındı!")
+    except asyncio.TimeoutError:
+        await ctx.send(f"⏱️ Süre doldu, **{hedef_kanal.name}** odasından kimse onay vermedi.")
+
+# --- 6. SES SEVİYESİ / AKTİFLİK KOMUTU ---
 @bot.command(name="ses-seviye")
 async def ses_seviye(ctx, member: discord.Member = None):
     member = member or ctx.author
@@ -207,7 +252,7 @@ async def ses_seviye(ctx, member: discord.Member = None):
     embed.add_field(name="Toplam Ses Puanı", value=f"{puan} Puan", inline=True)
     await ctx.send(embed=embed)
 
-# --- 6. DÜNYA ÇAPINDA KADRO KURMA OYUNU ---
+# --- 7. DÜNYA ÇAPINDA KADRO KURMA OYUNU ---
 @bot.command(name="kadro-kur")
 async def kadro_kur(ctx, kategori: str = "genel"):
     kategori = kategori.lower()
@@ -235,7 +280,7 @@ async def rastgele_kadro(ctx):
 async def kadro_bilgi(ctx):
     await ctx.send("ℹ️ **Kadro Kurma Rehberi:** 20 TL bütçeyle kaleci, defans, orta saha ve forvetlerden en iyi dünya karmasını kurmaya çalışırsın.")
 
-# --- 7. DİĞER YÖNETİM VE EĞLENCE KOMUTLARI ---
+# --- 8. DİĞER YÖNETİM VE EĞLENCE KOMUTLARI ---
 @bot.command(name="rol-mesaj")
 @commands.has_permissions(administrator=True)
 async def rol_mesaj(ctx, role: discord.Role, *, mesaj: str):
@@ -364,7 +409,7 @@ async def sunucu_bilgi(ctx):
 @bot.command(name="profil")
 async def profil(ctx, member: discord.Member = None):
     member = member or ctx.author
-    await ctx.send(embed=discord.Embed(title=f"👤 {member.name}", description=f"Katılım: {member.joined_at.strftime('%d/%m/%Y')}", color=discord.Color.blue()))
+    await ctx.send(embed=embed=discord.Embed(title=f"👤 {member.name}", description=f"Katılım: {member.joined_at.strftime('%d/%m/%Y')}", color=discord.Color.blue()))
 
 @bot.command(name="zar")
 async def zar(ctx):
