@@ -87,4 +87,4 @@ async def dur(ctx):
         await ctx.send("Zaten bir ses kanalında değilim.")
 
 keep_alive()
-bot.run(os.environ['MTU0OTQ0OTQ2NTM3NzU5MTQxNw.GwAS-x.sjm0a4eBPVvcR6LJP2MGH2dSslQ0Rbzm3SOYOA'])
+bot.run(os.environ['DISCORD_TOKEN'])
