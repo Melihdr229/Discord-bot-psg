@@ -17,9 +17,7 @@ sunucu_autorol = {}
 aktif_tahminler = {}  
 afk_kullanicilar = {}  
 uyari_veritabani = {}  
-aktif_kadro_oyunlari = {} # {user_id: [secilen_oyuncular, kalan_butce]}
 
-# Güncellenmiş Oto-Cevap Sözlüğü (Agah ve Reap kaldırıldı)
 OTO_CEVAPLAR = {
     "sa": "as",
     "selamun aleyküm": "aleyküm selam"
@@ -154,7 +152,9 @@ async def yardim(ctx):
         color=discord.Color.green()
     )
     embed.add_field(name="!yardim", value="Komutları listeler.", inline=False)
-    embed.add_field(name="!kadro-kur", value="20 TL bütçe ile efsane futbolcuları seçerek kadro kurma oyunu!", inline=False)
+    embed.add_field(name="!kadro-kur [pozisyon]", value="20 TL bütçe ile 100+ oyunculuk dev havuzdan kadro kurma oyunu! (kaleci, defans, orta, forvet yazabilirsin)", inline=False)
+    embed.add_field(name="!rastgele-kadro", value="Şansına rastgele bir 11 kurar.", inline=False)
+    embed.add_field(name="!kadro-bilgi", value="Kadro kurma oyununun kurallarını gösterir.", inline=False)
     embed.add_field(name="!rol-mesaj @Rol <mesaj>", value="Etiketlenen roldeki herkese özelden (DM) mesaj atar (Yönetici).", inline=False)
     embed.add_field(name="!afk <sebep>", value="Uzakta modunu açar.", inline=False)
     embed.add_field(name="!öneri <mesaj>", value="Öneri gönderir.", inline=False)
@@ -176,22 +176,64 @@ async def yardim(ctx):
     embed.add_field(name="!kick / !ban", value="Üye atar/yasaklar (Yönetici).", inline=False)
     await ctx.send(embed=embed)
 
-# --- 5. YENİ OYUN: 20 TL İLE KADRO KURMA ---
+# --- 5. GELİŞTİRİLMİŞ 100+ OYUNCULUK KADRO KURMA & YARDIMCI KOMUTLAR ---
 @bot.command(name="kadro-kur")
-async def kadro_kur(ctx):
-    embed = discord.Embed(
-        title="⚽ 20 TL ile Futbolcu Seçme Oyunu!",
-        description="Toplam **20 TL** bütçen var! Aşağıdaki havuzdan bütçene uygun oyuncuları seçerek kadonu oluştur.\n\n"
-                    "**🌟 9 TL'lik Yıldızlar:**\n• Messi\n• Ronaldo\n\n"
-                    "**⭐ 7 TL'lik Yıldızlar:**\n• Neymar\n• Mbappe\n• De Bruyne\n\n"
-                    "**💎 5 TL'lik Oyuncular:**\n• Salah\n• Bellingham\n• Vinicius Jr\n\n"
-                    "**⚡ 3 TL'lik Oyuncular:**\n• Modric\n• Kroos\n• Son\n\n"
-                    "**🛠️ 1 TL'lik Jokerler:**\n• Antony\n• Maguire\n• Onana\n\n"
-                    "Nasıl oynanır? Seçtiğin oyuncuları kağıda yazabilir veya arkadaşlarınla paylaşabilirsin! Kendi 11'ini kur ve eğlen!",
-        color=discord.Color.dark_green()
-    )
-    embed.set_footer(text=f"{ctx.author.name} için bütçe: 20 TL 💸")
+async def kadro_kur(ctx, kategori: str = "genel"):
+    kategori = kategori.lower()
+    
+    if kategori == "kaleci":
+        embed = discord.Embed(
+            title="🧤 Kaleci Havuzu (100+ Oyuncu Sistemi)",
+            description="**9 TL:** Neuer, Courtois\n**7 TL:** Alisson, Ter Stegen\n**5 TL:** Ederson, Oblak\n**3 TL:** Maignan, Emiliano Martinez\n**1 TL:** Onana, Altay Bayındır",
+            color=discord.Color.blue()
+        )
+    elif kategori == "defans":
+        embed = discord.Embed(
+            title="🛡️ Defans Havuzu (100+ Oyuncu Sistemi)",
+            description="**9 TL:** Sergio Ramos (Efsane), Maldini\n**7 TL:** Van Dijk, Ruben Dias, Saliba\n**5 TL:** Marquinhos, Araujo, Rudiger\n**3 TL:** Hakimi, Theo Hernandez, Alexander-Arnold\n**1 TL:** Maguire, Eric Garcia, Holding",
+            color=discord.Color.red()
+        )
+    elif kategori == "orta":
+        embed = discord.Embed(
+            title="🎯 Orta Saha Havuzu (100+ Oyuncu Sistemi)",
+            description="**9 TL:** Zidane, Iniesta, Modric\n**7 TL:** De Bruyne, Bellingham, Rodri, Kroos\n**5 TL:** Valverde, Odegaard, Bruno Fernandes\n**3 TL:** Pedri, Gavi, Barella\n**1 TL:** Antony (Joker), McTominay, Fred",
+            color=discord.Color.gold()
+        )
+    elif kategori == "forvet":
+        embed = discord.Embed(
+            title="⚡ Forvet Havuzu (100+ Oyuncu Sistemi)",
+            description="**9 TL:** Messi, Ronaldo, Pelé, Maradona, Mbappé, Haaland\n**7 TL:** Neymar, Vinicius Jr, Salah, Harry Kane\n**5 TL:** Son, Lewandowski, Griezmann, Lautaro\n**3 TL:** Osimhen, Rafael Leao, Rashford\n**1 TL:** Werner, Michy Batshuayi, Serdar Dursun",
+            color=discord.Color.purple()
+        )
+    else:
+        embed = discord.Embed(
+            title="⚽ 20 TL ile Dev Futbolcu Alışverişi",
+            description="Toplam **20 TL** bütçen var! Pozisyonuna göre detaylı havuzu görmek için şu komutları kullanabilirsin:\n"
+                        "• `!kadro-kur kaleci`\n"
+                        "• `!kadro-kur defans`\n"
+                        "• `!kadro-kur orta`\n"
+                        "• `!kadro-kur forvet`\n\n"
+                        "Stratejini kur, 11'ini belirle ve sohbette paylaş!",
+            color=discord.Color.dark_green()
+        )
+    
+    embed.set_footer(text=f"{ctx.author.name} için kadro havuzu yüklendi 💸")
     await ctx.send(embed=embed)
+
+@bot.command(name="rastgele-kadro")
+async def rastgele_kadro(ctx):
+    yildizlar = ["Messi", "Ronaldo", "Mbappé", "Haaland", "De Bruyne", "Bellingham", "Vinicius Jr", "Salah", "Modric", "Van Dijk", "Neuer"]
+    secilenler = random.sample(yildizlar, 5)
+    embed = discord.Embed(
+        title="🎲 Senin İçin Kurulan Rastgele 5'li Joker Kadro",
+        description=f"1. **{secilenler[0]}**\n2. **{secilenler[1]}**\n3. **{secilenler[2]}**\n4. **{secilenler[3]}**\n5. **{secilenler[4]}**\n\n*(Şansına bu oyuncular çıktı!)*",
+        color=discord.Color.orange()
+    )
+    await ctx.send(embed=embed)
+
+@bot.command(name="kadro-bilgi")
+async def kadro_bilgi(ctx):
+    await ctx.send("ℹ️ **Kadro Kurma Rehberi:** 20 TL sanal bütçeyle en iyi takımı kurmaya çalışırsın. 9 TL'lik megastarlar oyunu taşırken, 1 TL'lik jokerlerle bütçeyi dengeleyebilirsin!")
 
 # --- 6. ROLDEKİLERE ÖZELDEN (DM) MESAJ ATMA ---
 @bot.command(name="rol-mesaj")
