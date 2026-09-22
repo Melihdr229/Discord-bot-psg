@@ -6,10 +6,10 @@ from discord.ext import commands
 from keep_alive import keep_alive
 import google.generativeai as genai
 
-# Gemini Yapay Zeka Yapılandırması (gemini-pro modeli ile tamamen kararlı)
+# Gemini Yapay Zeka Yapılandırması (En güncel ve hatasız model: gemini-1.5-flash)
 if os.environ.get("GEMINI_API_KEY"):
     genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
-    gemini_model = genai.GenerativeModel('gemini-pro')
+    gemini_model = genai.GenerativeModel('gemini-1.5-flash')
 else:
     gemini_model = None
 
@@ -418,7 +418,7 @@ async def kanal_ac(ctx, *, kanal_adi: str):
 
 @bot.command(name="sil")
 @commands.has_permissions(manage_messages=True)
-async def sil(ctx, miktar: int, int=5):
+async def sil(ctx, miktar: int = 5):
     await ctx.channel.purge(limit=miktar + 1)
     await ctx.send(f"🧹 Son {miktar} mesaj silindi!", delete_after=5)
 
