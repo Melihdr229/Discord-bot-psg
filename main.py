@@ -177,7 +177,6 @@ async def yardim(ctx):
     embed.add_field(name="!ses-seviye [@kullanıcı]", value="Ses kanalı aktiflik puanını gösterir.", inline=False)
     embed.add_field(name="!kadro-kur [pozisyon]", value="20 TL bütçe ile dünya karması kadro kurma oyunu! (!kadro-kur kaleci/defans/orta/forvet)", inline=False)
     embed.add_field(name="!rastgele-kadro", value="Şansına rastgele bir 11 kurar.", inline=False)
-    embed.add_field(name="!maç-yap [@rakip]", value="Kurduğun kadroyu yapay zeka/rakip takımla maç simülasyonuna sokar!", inline=False)
     embed.add_field(name="!rol-mesaj @Rol <mesaj>", value="Roldeki herkese özelden mesaj atar (Yönetici).", inline=False)
     embed.add_field(name="!afk <sebep>", value="Uzakta moduna geçiş.", inline=False)
     embed.add_field(name="!öneri <mesaj>", value="Öneri gönderir.", inline=False)
@@ -208,7 +207,7 @@ async def ses_seviye(ctx, member: discord.Member = None):
     embed.add_field(name="Toplam Ses Puanı", value=f"{puan} Puan", inline=True)
     await ctx.send(embed=embed)
 
-# --- 6. DÜNYA ÇAPINDA KADRO KURMA & MAÇ SİMÜLASYONU ---
+# --- 6. DÜNYA ÇAPINDA KADRO KURMA OYUNU ---
 @bot.command(name="kadro-kur")
 async def kadro_kur(ctx, kategori: str = "genel"):
     kategori = kategori.lower()
@@ -221,7 +220,7 @@ async def kadro_kur(ctx, kategori: str = "genel"):
     elif kategori == "forvet":
         embed = discord.Embed(title="⚡ Dünya Çapında Forvet Havuzu", description="**9 TL:** Messi, Ronaldo (R9), Pelé, Maradona, Mbappé, Haaland\n**7 TL:** Neymar, Vinicius Jr, Salah, Harry Kane, Lewandowski, Henry\n**5 TL:** Son Heung-min, Griezmann, Lautaro, Dybala, Bukayo Saka\n**3 TL:** Osimhen, Rashford, Vlahovic, Barış Alper Yılmaz\n**1 TL:** Werner, Michy Batshuayi, Serdar Dursun, Cenk Tosun", color=discord.Color.purple())
     else:
-        embed = discord.Embed(title="⚽ 20 TL ile Dünya Çapında Futbolcu Alışverişi", description="Toplam **20 TL** bütçen var! Pozisyonuna göre detaylı havuz için:\n• `!kadro-kur kaleci`\n• `!kadro-kur defans`\n• `!kadro-kur orta`\n• `!kadro-kur forvet`\n\n*Kurduğun kadroyla maç yapmak için:* `!maç-yap`", color=discord.Color.dark_green())
+        embed = discord.Embed(title="⚽ 20 TL ile Dünya Çapında Futbolcu Alışverişi", description="Toplam **20 TL** bütçen var! Pozisyonuna göre detaylı havuz için:\n• `!kadro-kur kaleci`\n• `!kadro-kur defans`\n• `!kadro-kur orta`\n• `!kadro-kur forvet`", color=discord.Color.dark_green())
     embed.set_footer(text=f"{ctx.author.name} için küresel futbol havuzu yüklendi 💸")
     await ctx.send(embed=embed)
 
@@ -232,48 +231,9 @@ async def rastgele_kadro(ctx):
     embed = discord.Embed(title="🎲 Dünya Karmasından Rastgele 5'li Joker Kadro", description=f"1. **{secilenler[0]}**\n2. **{secilenler[1]}**\n3. **{secilenler[2]}**\n4. **{secilenler[3]}**\n5. **{secilenler[4]}**", color=discord.Color.orange())
     await ctx.send(embed=embed)
 
-@bot.command(name="maç-yap")
-async def mac_yap(ctx, rakip_uye: discord.Member = None):
-    takim1 = ctx.author.name
-    takim2 = rakip_uye.name if rakip_uye else "Yapay Zeka Galaktik Karması"
-    
-    msg = await ctx.send(f"🏟️ **{takim1}** ile **{takim2}** arasında büyük maç simülasyonu başlasın! Hakem düdüğü çaldı...")
-    await asyncio.sleep(2)
-    
-    skor1 = random.randint(0, 4)
-    skor2 = random.randint(0, 4)
-    
-    dakikalar = [random.randint(1, 89) for _ in range(skor1 + skor2)]
-    dakikalar.sort()
-    
-    olaylar = ""
-    golluk_atanlar = [takim1] * skor1 + [takim2] * skor2
-    random.shuffle(golluk_atanlar)
-    
-    for i, dk in enumerate(dakikalar):
-        atan = golluk_atanlar[i]
-        olaylar += f"⚽ **Dakika {dk}':** GOL! {atan} skoru değiştirdi!\n"
-    
-    if not olaylar:
-        olaylar = "🔒 Maç büyük bir taktik savaşına sahne oldu ve savunmalar geçit vermedi."
-
-    embed = discord.Embed(
-        title="🏆 Maç Sonucu & Simülasyon Raporu",
-        description=f"**{takim1}  {skor1} - {skor2}  {takim2}**\n\n{olaylar}",
-        color=discord.Color.gold()
-    )
-    if skor1 > skor2:
-        embed.set_footer(text=f"Kazanan taraf muhteşem taktiğiyle {takim1} oldu! 👑")
-    elif skor2 > skor1:
-        embed.set_footer(text=f"Kazanan taraf {takim2} oldu! 🏅")
-    else:
-        embed.set_footer(text="Dengeli geçen mücadelede kazanan çıkmadı, dostluk kazandı! 🤝")
-        
-    await msg.edit(content=None, embed=embed)
-
 @bot.command(name="kadro-bilgi")
 async def kadro_bilgi(ctx):
-    await ctx.send("ℹ️ **Kadro Kurma Rehberi:** 20 TL bütçeyle kadronu kur, ardından `!maç-yap` veya `!maç-yap @Arkadaşın` komutuyla maç simülasyonunu başlat!")
+    await ctx.send("ℹ️ **Kadro Kurma Rehberi:** 20 TL bütçeyle kaleci, defans, orta saha ve forvetlerden en iyi dünya karmasını kurmaya çalışırsın.")
 
 # --- 7. DİĞER YÖNETİM VE EĞLENCE KOMUTLARI ---
 @bot.command(name="rol-mesaj")
