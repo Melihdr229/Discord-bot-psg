@@ -17,6 +17,13 @@ sunucu_autorol = {}
 aktif_tahminler = {}  
 afk_kullanicilar = {}  
 uyari_veritabani = {}  
+aktif_kadro_oyunlari = {} # {user_id: [secilen_oyuncular, kalan_butce]}
+
+# Güncellenmiş Oto-Cevap Sözlüğü (Agah ve Reap kaldırıldı)
+OTO_CEVAPLAR = {
+    "sa": "as",
+    "selamun aleyküm": "aleyküm selam"
+}
 
 YASAKLI_KELIMELER = [
     "allahı sikeyim", "kuranı sikeyim", "allahı", "kuranı", 
@@ -87,6 +94,10 @@ async def on_message(message):
     if message.author.bot:
         return
 
+    mesaj_metni = message.content.lower().strip()
+    if mesaj_metni in OTO_CEVAPLAR:
+        await message.channel.send(OTO_CEVAPLAR[mesaj_metni])
+
     if message.mentions:
         for user in message.mentions:
             if user.id in afk_kullanicilar:
@@ -114,9 +125,8 @@ async def on_message(message):
         except ValueError:
             pass
 
-    mesaj_icerik = message.content.lower()
     for kelime in YASAKLI_KELIMELER:
-        if kelime in mesaj_icerik:
+        if kelime in mesaj_metni:
             try:
                 await message.delete()
                 await message.channel.send(f"⚠️ {message.author.mention}, bu sunucuda bu tarz küfür ve hakaretlerin kullanılmasına kesinlikle izin verilmiyor!", delete_after=5)
@@ -144,17 +154,21 @@ async def yardim(ctx):
         color=discord.Color.green()
     )
     embed.add_field(name="!yardim", value="Komutları listeler.", inline=False)
+    embed.add_field(name="!kadro-kur", value="20 TL bütçe ile efsane futbolcuları seçerek kadro kurma oyunu!", inline=False)
     embed.add_field(name="!rol-mesaj @Rol <mesaj>", value="Etiketlenen roldeki herkese özelden (DM) mesaj atar (Yönetici).", inline=False)
     embed.add_field(name="!afk <sebep>", value="Uzakta modunu açar.", inline=False)
     embed.add_field(name="!öneri <mesaj>", value="Öneri gönderir.", inline=False)
     embed.add_field(name="!tahmin", value="Sayı tahmin oyunu başlatır.", inline=False)
     embed.add_field(name="!çekiliş <saniye> <ödül>", value="Çekiliş başlatır (Yönetici).", inline=False)
     embed.add_field(name="!profil [@kullanıcı]", value="Kullanıcı profili gösterir.", inline=False)
+    embed.add_field(name="!kullanıcı-bilgi [@kullanıcı]", value="Detaylı kullanıcı bilgisi gösterir.", inline=False)
     embed.add_field(name="!seviye", value="Seviye ve XP gösterir.", inline=False)
     embed.add_field(name="!sunucu-bilgi", value="Sunucu bilgilerini gösterir.", inline=False)
     embed.add_field(name="!zar / !yazıtura", value="Eğlence komutları.", inline=False)
     embed.add_field(name="!uyarı @kullanıcı <sebep>", value="Kullanıcıyı uyarır (Yönetici).", inline=False)
     embed.add_field(name="!uyarılar @kullanıcı", value="Uyarı geçmişini gösterir (Yönetici).", inline=False)
+    embed.add_field(name="!uyarı-sil @kullanıcı", value="Kullanıcının son uyarısını siler (Yönetici).", inline=False)
+    embed.add_field(name="!yavaşmod <saniye>", value="Kanalı yavaş moda alır (Yönetici).", inline=False)
     embed.add_field(name="!kilit / !aç", value="Kanalı kilitler/açar (Yönetici).", inline=False)
     embed.add_field(name="!autorol <rol>", value="Otomatik rol ayarlar (Yönetici).", inline=False)
     embed.add_field(name="!kanal-aç <isim>", value="Kanal açar (Yönetici).", inline=False)
@@ -162,7 +176,24 @@ async def yardim(ctx):
     embed.add_field(name="!kick / !ban", value="Üye atar/yasaklar (Yönetici).", inline=False)
     await ctx.send(embed=embed)
 
-# --- 5. YENİ ÖZELLİK: ROLDEKİLERE ÖZELDEN (DM) MESAJ ATMA ---
+# --- 5. YENİ OYUN: 20 TL İLE KADRO KURMA ---
+@bot.command(name="kadro-kur")
+async def kadro_kur(ctx):
+    embed = discord.Embed(
+        title="⚽ 20 TL ile Futbolcu Seçme Oyunu!",
+        description="Toplam **20 TL** bütçen var! Aşağıdaki havuzdan bütçene uygun oyuncuları seçerek kadonu oluştur.\n\n"
+                    "**🌟 9 TL'lik Yıldızlar:**\n• Messi\n• Ronaldo\n\n"
+                    "**⭐ 7 TL'lik Yıldızlar:**\n• Neymar\n• Mbappe\n• De Bruyne\n\n"
+                    "**💎 5 TL'lik Oyuncular:**\n• Salah\n• Bellingham\n• Vinicius Jr\n\n"
+                    "**⚡ 3 TL'lik Oyuncular:**\n• Modric\n• Kroos\n• Son\n\n"
+                    "**🛠️ 1 TL'lik Jokerler:**\n• Antony\n• Maguire\n• Onana\n\n"
+                    "Nasıl oynanır? Seçtiğin oyuncuları kağıda yazabilir veya arkadaşlarınla paylaşabilirsin! Kendi 11'ini kur ve eğlen!",
+        color=discord.Color.dark_green()
+    )
+    embed.set_footer(text=f"{ctx.author.name} için bütçe: 20 TL 💸")
+    await ctx.send(embed=embed)
+
+# --- 6. ROLDEKİLERE ÖZELDEN (DM) MESAJ ATMA ---
 @bot.command(name="rol-mesaj")
 @commands.has_permissions(administrator=True)
 async def rol_mesaj(ctx, role: discord.Role, *, mesaj: str):
@@ -180,13 +211,13 @@ async def rol_mesaj(ctx, role: discord.Role, *, mesaj: str):
 
     await ctx.send(f"✅ İşlem tamamlandı! **{role.name}** roldeki **{basarili}** kişiye özelden mesaj gönderildi. (Ulaşılamayan: {basarisiz})", delete_after=10)
 
-# --- 6. AFK SİSTEMİ ---
+# --- 7. AFK SİSTEMİ ---
 @bot.command(name="afk")
 async def afk(ctx, *, sebep="Belirtilmedi"):
     afk_kullanicilar[ctx.author.id] = sebep
     await ctx.send(f"💤 {ctx.author.mention}, başarıyla AFK moduna geçtin. Sebep: *{sebep}*")
 
-# --- 7. ÇEKİLİŞ SİSTEMİ ---
+# --- 8. ÇEKİLİŞ SİSTEMİ ---
 @bot.command(name="çekiliş")
 @commands.has_permissions(administrator=True)
 async def cekilis(ctx, sure: int, *, odul: str):
@@ -212,7 +243,7 @@ async def cekilis(ctx, sure: int, *, odul: str):
     else:
         await ctx.send("❌ Çekilişe yeterli katılım olmadığından kazanan seçilemedi.")
 
-# --- 8. UYARI (WARN) SİSTEMİ ---
+# --- 9. UYARI SİSTEMİ ---
 @bot.command(name="uyarı")
 @commands.has_permissions(manage_messages=True)
 async def uyari(ctx, member: discord.Member, *, sebep="Belirtilmedi"):
@@ -234,7 +265,42 @@ async def uyarilar(ctx, member: discord.Member):
     else:
         await ctx.send(f"✅ {member.name} adlı kullanıcının hiç uyarısı yok.")
 
-# --- 9. DİĞER KOMUTLAR ---
+@bot.command(name="uyarı-sil")
+@commands.has_permissions(manage_messages=True)
+async def uyari_sil(ctx, member: discord.Member):
+    if member.id in uyari_veritabani and uyari_veritabani[member.id]:
+        silinen = uyari_veritabani[member.id].pop()
+        kalan = len(uyari_veritabani[member.id])
+        await ctx.send(f"✅ **{member.name}** adlı kullanıcının son uyarısı silindi! (Kalan Uyarı: {kalan})")
+    else:
+        await ctx.send(f"❌ {member.name} adlı kullanıcının silinebilecek uyarısı yok.")
+
+# --- 10. YAVAŞ MOD ---
+@bot.command(name="yavaşmod")
+@commands.has_permissions(manage_channels=True)
+async def yavasmod(ctx, saniye: int):
+    await ctx.channel.slowmode_delay(saniye)
+    if saniye == 0:
+        await ctx.send("⏱️ Bu kanaldaki yavaş mod kapatıldı.")
+    else:
+        await ctx.send(f"⏱️ Bu kanalın yavaş mod süresi **{saniye}** saniye olarak ayarlandı.")
+
+# --- 11. KULLANICI BİLGİ ---
+@bot.command(name="kullanıcı-bilgi")
+async def kullanici_bilgi(ctx, member: discord.Member = None):
+    member = member or ctx.author
+    roller = [role.mention for role in member.roles[1:]]
+    roller_str = ", ".join(roller) if roller else "Rolü yok"
+    
+    embed = discord.Embed(title=f"🔍 Detaylı Kullanıcı Bilgisi: {member.name}", color=discord.Color.dark_blue())
+    embed.set_thumbnail(url=member.avatar.url if member.avatar else member.default_avatar.url)
+    embed.add_field(name="Kullanıcı ID", value=member.id, inline=True)
+    embed.add_field(name="Sunucuya Katılım", value=member.joined_at.strftime("%d/%m/%Y"), inline=True)
+    embed.add_field(name="Discord'a Kayıt", value=member.created_at.strftime("%d/%m/%Y"), inline=True)
+    embed.add_field(name=f"Roller ({len(member.roles)-1})", value=roller_str, inline=False)
+    await ctx.send(embed=embed)
+
+# --- 12. DİĞER KOMUTLAR ---
 @bot.command(name="öneri")
 async def oneri(ctx, *, metin: str):
     await ctx.message.delete()
