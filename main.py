@@ -4,18 +4,26 @@ import asyncio
 import discord
 from discord.ext import commands
 from keep_alive import keep_alive
+import google.generativeai as genai
+
+# Gemini Yapay Zeka Yapılandırması
+if os.environ.get("GEMINI_API_KEY"):
+    genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+    gemini_model = genai.GenerativeModel('gemini-1.5-flash')
+else:
+    gemini_model = None
 
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
-intents.voice_states = True  # Ses kanallarını takip etmek için kritik intent
+intents.voice_states = True  
 
 bot = commands.Bot(command_prefix="!", intents=intents, help_command=None)
 
 # Hafıza Depoları
-user_xp = {}         # Mesaj XP
-ses_xp = {}          # Ses Kanalı XP {user_id: puan}
-ses_takip = {}       # Ses kanalına giriş zamanları {user_id: baslangic_zamani}
+user_xp = {}         
+ses_xp = {}          
+ses_takip = {}       
 sunucu_autorol = {}  
 aktif_tahminler = {}  
 afk_kullanicilar = {}  
@@ -74,7 +82,6 @@ async def on_voice_state_update(member, before, after):
     if member.bot:
         return
 
-    # Özel Oda Oluşturucu Sistemi
     if after.channel and after.channel.name == "➕ Oda Oluştur":
         guild = member.guild
         category = after.channel.category
@@ -95,27 +102,40 @@ async def on_voice_state_update(member, before, after):
     import time
     simdiki_zaman = time.time()
 
-    # Ses kanalına giren kullanıcı (Susturulmamış ve sağırlaştırılmamışsa)
     if before.channel is None and after.channel is not None:
         if not after.self_mute and not after.self_deaf:
             ses_takip[member.id] = simdiki_zaman
 
-    # Ses kanalından çıkan veya tamamen sesten düşen kullanıcı
     elif before.channel is not None and after.channel is None:
         if member.id in ses_takip:
             gecen_sure = simdiki_zaman - ses_takip[member.id]
             dakika = int(gecen_sure // 60)
             if dakika > 0:
-                # Her 1 dakika seste kalmaya rastgele 10-20 ses XP'si ver
                 kazanilan_ses_xp = dakika * random.randint(10, 20)
                 ses_xp[member.id] = ses_xp.get(member.id, 0) + kazanilan_ses_xp
             del ses_takip[member.id]
 
-# --- 3. MESAJ KONTROLÜ ---
+# --- 3. MESAJ KONTROLÜ (YAPAY ZEKA VE DİĞERLERİ) ---
 @bot.event
 async def on_message(message):
     global mesaj_sayaci
     if message.author.bot:
+        return
+
+    # Prefix olmadan Yapay Zeka Yanıtı (Bot etiketlendiğinde çalışır)
+    if bot.user.mentioned_in(message):
+        if gemini_model:
+            # Mesajdaki bot etiketini temizleyip saf soruyu alalım
+            soru = message.content.replace(f'<@!{bot.user.id}>', '').replace(f'<@{bot.user.id}>', '').strip()
+            if soru:
+                async with message.channel.typing():
+                    try:
+                        response = gemini_model.generate_content(soru)
+                        await message.reply(response.text)
+                    except Exception as e:
+                        await message.reply("🤖 Yapay zeka yanıt üretirken bir hata oluştu.")
+        else:
+            await message.reply("⚠️ Yapay zeka API anahtarı (GEMINI_API_KEY) tanımlanmamış!")
         return
 
     mesaj_metni = message.content.lower().strip()
@@ -174,15 +194,15 @@ async def on_message(message):
 async def yardim(ctx):
     embed = discord.Embed(
         title="🤖 Ultimate Mega Bot Komutları",
-        description="Sunucuyu yönetmek ve eğlenmek için kullanabileceğin tüm komutlar:",
+        description="Sunucuyu yönetmek ve eğlenmek için kullanabileceğin tüm komutlar:\n*(Not: Yapay zeka ile konuşmak için botu etiketleyerek mesaj atabilirsin!)*",
         color=discord.Color.green()
     )
     embed.add_field(name="!yardim", value="Komutları listeler.", inline=False)
-    embed.add_field(name="!ses-seviye [@kullanıcı]", value="Ses kanallarında geçirdiğin süreden kazandığın ses puanını gösterir.", inline=False)
-    embed.add_field(name="!kadro-kur [pozisyon]", value="20 TL bütçe ile 100+ oyunculuk dev kadro kurma oyunu!", inline=False)
+    embed.add_field(name="@Bot <soru>", value="Prefix gerektirmeden yapay zeka ile sohbet edersin.", inline=False)
+    embed.add_field(name="!ses-seviye [@kullanıcı]", value="Ses kanalı aktiflik puanını gösterir.", inline=False)
+    embed.add_field(name="!kadro-kur [pozisyon]", value="20 TL bütçe ile 100+ oyunculuk kadro kurma oyunu!", inline=False)
     embed.add_field(name="!rastgele-kadro", value="Şansına rastgele bir 11 kurar.", inline=False)
-    embed.add_field(name="!kadro-bilgi", value="Kadro kurma oyununun kurallarını gösterir.", inline=False)
-    embed.add_field(name="!rol-mesaj @Rol <mesaj>", value="Etiketlenen roldeki herkese özelden mesaj atar (Yönetici).", inline=False)
+    embed.add_field(name="!rol-mesaj @Rol <mesaj>", value="Roldeki herkese özelden mesaj atar (Yönetici).", inline=False)
     embed.add_field(name="!afk <sebep>", value="Uzakta modunu açar.", inline=False)
     embed.add_field(name="!öneri <mesaj>", value="Öneri gönderir.", inline=False)
     embed.add_field(name="!tahmin", value="Sayı tahmin oyunu başlatır.", inline=False)
@@ -208,17 +228,14 @@ async def yardim(ctx):
 async def ses_seviye(ctx, member: discord.Member = None):
     member = member or ctx.author
     puan = ses_xp.get(member.id, 0)
-    
     embed = discord.Embed(title=f"🔊 {member.name} - Ses Seviyesi Bilgisi", color=discord.Color.blue())
     embed.add_field(name="Toplam Ses Puanı", value=f"{puan} Puan", inline=True)
-    embed.set_footer(text="Ses kanallarında vakit geçirdikçe ses puanın otomatik artar!")
     await ctx.send(embed=embed)
 
 # --- 6. 100+ OYUNCULUK KADRO KURMA & YARDIMCI KOMUTLAR ---
 @bot.command(name="kadro-kur")
 async def kadro_kur(ctx, kategori: str = "genel"):
     kategori = kategori.lower()
-    
     if kategori == "kaleci":
         embed = discord.Embed(title="🧤 Kaleci Havuzu", description="**9 TL:** Neuer, Courtois\n**7 TL:** Alisson, Ter Stegen\n**5 TL:** Ederson, Oblak\n**3 TL:** Maignan, Emiliano Martinez\n**1 TL:** Onana, Altay Bayındır", color=discord.Color.blue())
     elif kategori == "defans":
@@ -229,7 +246,6 @@ async def kadro_kur(ctx, kategori: str = "genel"):
         embed = discord.Embed(title="⚡ Forvet Havuzu", description="**9 TL:** Messi, Ronaldo, Pelé, Maradona, Mbappé, Haaland\n**7 TL:** Neymar, Vinicius Jr, Salah, Harry Kane\n**5 TL:** Son, Lewandowski, Griezmann, Lautaro\n**3 TL:** Osimhen, Rafael Leao, Rashford\n**1 TL:** Werner, Michy Batshuayi, Serdar Dursun", color=discord.Color.purple())
     else:
         embed = discord.Embed(title="⚽ 20 TL ile Dev Futbolcu Alışverişi", description="Toplam **20 TL** bütçen var! Pozisyonuna göre detaylı havuz için:\n• `!kadro-kur kaleci`\n• `!kadro-kur defans`\n• `!kadro-kur orta`\n• `!kadro-kur forvet`", color=discord.Color.dark_green())
-    
     embed.set_footer(text=f"{ctx.author.name} için kadro havuzu yüklendi 💸")
     await ctx.send(embed=embed)
 
