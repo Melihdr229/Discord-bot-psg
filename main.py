@@ -21,6 +21,7 @@ kilitli_odalilar = set()
 aktif_tahminler = {}  
 afk_kullanicilar = {}  
 uyari_veritabani = {}  
+aktif_sorular = {}     # Günün sorularını ve doğru cevaplarını takip etmek için
 
 OTO_CEVAPLAR = {
     "sa": "as",
@@ -32,13 +33,14 @@ YASAKLI_KELIMELER = [
     "küfür1", "küfür2"
 ]
 
+# Günün Bilgi Soruları ve Doğru Cevapları (Küçük harfle yazılır)
 GUNCEL_SORULAR = [
-    "🧠 **Günün Bilgi Sorusu:** Hangi futbol takımı, Şampiyonlar Ligi'ni en çok kazanan kulüptür?",
-    "🧠 **Günün Bilgi Sorusu:** Türkiye'nin yüz ölçümü bakımından en büyük şehri hangisidir?",
-    "🧠 **Günün Bilgi Sorusu:** Bilgisayar biliminin babası olarak bilinen ve yapay zekanın temellerini atan ünlü İngiliz matematikçi kimdir?",
-    "🧠 **Günün Bilgi Sorusu:** 'Grand Line' hangi ünlü anime serisinde yer alan okyanus yoludur?",
-    "🧠 **Günün Bilgi Sorusu:** Güneş sistemindeki en büyük gezegen hangisidir?",
-    "🧠 **Günün Bilgi Sorusu:** İstanbul hangi yıl feth edilmiştir?"
+    {"soru": "🧠 **Günün Bilgi Sorusu:** Hangi futbol takımı, Şampiyonlar Ligi'ni en çok kazanan kulüptür?", "cevap": "real madrid"},
+    {"soru": "🧠 **Günün Bilgi Sorusu:** Türkiye'nin yüz ölçümü bakımından en büyük şehri hangisidir?", "cevap": "konya"},
+    {"soru": "🧠 **Günün Bilgi Sorusu:** Bilgisayar biliminin babası olarak bilinen ve yapay zekanın temellerini atan ünlü İngiliz matematikçi kimdir?", "cevap": "alan turing"},
+    {"soru": "🧠 **Günün Bilgi Sorusu:** 'Grand Line' hangi ünlü anime serisinde yer alan okyanus yoludur?", "cevap": "one piece"},
+    {"soru": "🧠 **Günün Bilgi Sorusu:** Güneş sistemindeki en büyük gezegen hangisidir?", "cevap": "jüpiter"},
+    {"soru": "🧠 **Günün Bilgi Sorusu:** İstanbul hangi yıl feth edilmiştir?", "cevap": "1453"}
 ]
 
 mesaj_sayaci = 0
@@ -204,7 +206,7 @@ async def on_member_update(before, after):
             embed = discord.Embed(title="🏷️ Rol Güncellendi", description=desc, color=discord.Color.purple())
             await log_kanal.send(embed=embed)
 
-# --- 3. SES KANALI VE KESİN ÇÖZÜMLÜ OTOMATİK ODA SİSTEMİ ---
+# --- 3. SES KANALI VE OTOMATİK ODA SİSTEMİ ---
 @bot.event
 async def on_voice_state_update(member, before, after):
     if member.bot:
@@ -269,7 +271,7 @@ async def on_voice_state_update(member, before, after):
                 ses_xp[member.id] = ses_xp.get(member.id, 0) + kazanilan_ses_xp
             del ses_takip[member.id]
 
-# --- 4. MESAJ KONTROLÜ VE KÜFÜR FİLTRESİ ---
+# --- 4. MESAJ KONTROLÜ, KÜFÜR FİLTRESİ VE AKILLI BİLGİ SORULARI ---
 @bot.event
 async def on_message(message):
     global mesaj_sayaci
@@ -277,6 +279,14 @@ async def on_message(message):
         return
 
     mesaj_metni = message.content.lower().strip()
+    
+    # Günün sorusu aktifse ve kullanıcı doğru cevap verdiyse
+    if message.channel.id in aktif_sorular:
+        dogru_cevap = aktif_sorular[message.channel.id]
+        if dogru_cevap in mesaj_metni:
+            await message.channel.send(f"🎉 Helal olsun {message.author.mention}, doğru bildin! **Çok akıllısın maşallah!** 🧠✨ Crown 👑")
+            del aktif_sorular[message.channel.id]
+
     if mesaj_metni in OTO_CEVAPLAR:
         await message.channel.send(OTO_CEVAPLAR[mesaj_metni])
 
@@ -322,8 +332,9 @@ async def on_message(message):
     mesaj_sayaci += 1
     if mesaj_sayaci >= 15:
         mesaj_sayaci = 0
-        secilen_soru = random.choice(GUNCEL_SORULAR)
-        await message.channel.send(secilen_soru)
+        secilen = random.choice(GUNCEL_SORULAR)
+        aktif_sorular[message.channel.id] = secilen["cevap"]
+        await message.channel.send(secilen["soru"])
 
     await bot.process_commands(message)
 
