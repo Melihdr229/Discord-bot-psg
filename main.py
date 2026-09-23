@@ -47,22 +47,30 @@ mesaj_sayaci = 0
 async def on_ready():
     print(f"Giriş yapıldı! Bot aktif: {bot.user}")
 
-# --- 1. OTOMATİK ROL VE HOŞ GELDİN MESAJI (GÜNCELLENDİ) ---
+# --- 1. OTOMATİK ROL VE HOŞ GELDİN MESAJI ---
 @bot.event
 async def on_member_join(member):
-    # Önce !autorol-ayarla ile ayarlananı arar, yoksa doğrudan "Üye" rolünü arar
     verilecek_rol_adi = sunucu_autorol.get(member.guild.id, "Üye")
     rol = discord.utils.get(member.guild.roles, name=verilecek_rol_adi)
     
-    # Eğer "Üye" de bulunamazsa sunucudaki ilk normal rolü alternatif olarak aratabiliriz
     if not rol:
         rol = discord.utils.get(member.guild.roles, name="Üye") or discord.utils.get(member.guild.roles, name="uye")
 
     if rol:
         try:
             await member.add_roles(rol)
-        except Exception as e:
-            print(f"Otorol verme hatası: {e}")
+        except:
+            pass
+
+    log_kanal = discord.utils.get(member.guild.text_channels, name="mod-log")
+    if log_kanal:
+        embed = discord.Embed(
+            title="📥 Sunucuya Biri Katıldı",
+            description=f"**Üye:** {member.mention} ({member.name})\n**Toplam Üye:** {member.guild.member_count}",
+            color=discord.Color.green()
+        )
+        embed.set_thumbnail(url=member.avatar.url if member.avatar else member.default_avatar.url)
+        await log_kanal.send(embed=embed)
 
     channel = discord.utils.get(member.guild.text_channels, name="hosgeldin") or discord.utils.get(member.guild.text_channels, name="giriş")
     if channel:
@@ -74,39 +82,36 @@ async def on_member_join(member):
         embed.set_thumbnail(url=member.avatar.url if member.avatar else member.default_avatar.url)
         await channel.send(embed=embed)
 
-# --- 2. GELİŞMİŞ MODERATÖR LOG SİSTEMİ ---
-@bot.event
-async def on_message_delete(message):
-    if message.author.bot or not message.guild:
-        return
-    log_kanal = discord.utils.get(message.guild.text_channels, name="mod-log")
-    if log_kanal:
-        embed = discord.Embed(
-            title="🗑️ Mesaj Silindi",
-            description=f"**Kanal:** {message.channel.mention}\n**Yazan:** {message.author.mention}\n**İçerik:** `{message.content or 'İçerik yok'}`",
-            color=discord.Color.red()
-        )
-        embed.set_footer(text=f"Kullanıcı ID: {message.author.id}")
-        await log_kanal.send(embed=embed)
-
+# --- 2. FULL KAPSAMLI MODERATÖR LOG SİSTEMİ ---
 @bot.event
 async def on_member_remove(member):
     if not member.guild:
         return
     log_kanal = discord.utils.get(member.guild.text_channels, name="mod-log")
-    if log_kanal:
-        try:
-            async for entry in member.guild.audit_logs(limit=1, action=discord.AuditLogAction.kick):
-                if entry.target.id == member.id:
-                    embed = discord.Embed(
-                        title="👢 Üye Kicklendi (Atıldı)",
-                        description=f"**Atılan:** {member.mention} ({member.name})\n**Atan Yetkili:** {entry.user.mention}\n**Sebep:** {entry.reason or 'Belirtilmedi'}",
-                        color=discord.Color.orange()
-                    )
-                    await log_kanal.send(embed=embed)
-                    return
-        except:
-            pass
+    if not log_kanal:
+        return
+
+    # Kick kontrolü
+    try:
+        async for entry in member.guild.audit_logs(limit=1, action=discord.AuditLogAction.kick):
+            if entry.target.id == member.id:
+                embed = discord.Embed(
+                    title="👢 Üye Kicklendi (Atıldı)",
+                    description=f"**Atılan:** {member.mention} ({member.name})\n**Atan Yetkili:** {entry.user.mention}\n**Sebep:** {entry.reason or 'Belirtilmedi'}",
+                    color=discord.Color.orange()
+                )
+                await log_kanal.send(embed=embed)
+                return
+    except:
+        pass
+
+    # Normal çıkış logu
+    embed = discord.Embed(
+        title="📤 Sunucudan Ayrıldı",
+        description=f"**Üye:** {member.mention} ({member.name})",
+        color=discord.Color.dark_gray()
+    )
+    await log_kanal.send(embed=embed)
 
 @bot.event
 async def on_member_ban(guild, user):
@@ -125,7 +130,74 @@ async def on_member_ban(guild, user):
         except:
             pass
 
-# --- 3. SES KANALI VE BAĞLANTI KESİLME LOGLARI ---
+@bot.event
+async def on_member_unban(guild, user):
+    log_kanal = discord.utils.get(guild.text_channels, name="mod-log")
+    if log_kanal:
+        embed = discord.Embed(
+            title="🔓 Üye Banı Kaldırıldı",
+            description=f"**Affedilen Üye:** {user.mention} ({user.name})",
+            color=discord.Color.blue()
+        )
+        await log_kanal.send(embed=embed)
+
+@bot.event
+async def on_message_delete(message):
+    if message.author.bot or not message.guild:
+        return
+    log_kanal = discord.utils.get(message.guild.text_channels, name="mod-log")
+    if log_kanal:
+        embed = discord.Embed(
+            title="🗑️ Mesaj Silindi",
+            description=f"**Kanal:** {message.channel.mention}\n**Yazan:** {message.author.mention}\n**İçerik:** `{message.content or 'İçerik yok/Medya'}`",
+            color=discord.Color.red()
+        )
+        embed.set_footer(text=f"Kullanıcı ID: {message.author.id}")
+        await log_kanal.send(embed=embed)
+
+@bot.event
+async def on_message_edit(before, after):
+    if before.author.bot or not before.guild or before.content == after.content:
+        return
+    log_kanal = discord.utils.get(before.guild.text_channels, name="mod-log")
+    if log_kanal:
+        embed = discord.Embed(
+            title="✏️ Mesaj Düzenlendi",
+            description=f"**Kanal:** {before.channel.mention}\n**Yazan:** {before.author.mention}\n**Eski Hali:** `{before.content}`\n**Yeni Hali:** `{after.content}`",
+            color=discord.Color.gold()
+        )
+        await log_kanal.send(embed=embed)
+
+@bot.event
+async def on_member_update(before, after):
+    log_kanal = discord.utils.get(before.guild.text_channels, name="mod-log")
+    if not log_kanal:
+        return
+
+    # İsim Değişikliği Logu
+    if before.nick != after.nick:
+        embed = discord.Embed(
+            title="✍️ Kullanıcı Adı (Nick) Değişti",
+            description=f"**Üye:** {after.mention}\n**Eski İsim:** `{before.nick or before.name}`\n**Yeni İsim:** `{after.nick or after.name}`",
+            color=discord.Color.blue()
+        )
+        await log_kanal.send(embed=embed)
+
+    # Rol Değişikliği Logu
+    if before.roles != after.roles:
+        eklenen = [r.name for r in after.roles if r not in before.roles]
+        silinen = [r.name for r in before.roles if r not in after.roles]
+        if eklenen or silinen:
+            desc = f"**Üye:** {after.mention}\n"
+            if eklenen:
+                desc += f"➕ **Eklenen Rol(ler):** {', '.join(eklenen)}\n"
+            if silinen:
+                desc += f"➖ **Alınan Rol(ler):** {', '.join(silinen)}\n"
+            
+            embed = discord.Embed(title="🏷️ Rol Güncellendi", description=desc, color=discord.Color.purple())
+            await log_kanal.send(embed=embed)
+
+# --- 3. SES KANALI VE BAĞLANTI LOGLARI ---
 @bot.event
 async def on_voice_state_update(member, before, after):
     if member.bot:
