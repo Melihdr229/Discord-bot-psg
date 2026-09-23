@@ -22,6 +22,7 @@ aktif_tahminler = {}
 afk_kullanicilar = {}  
 uyari_veritabani = {}  
 aktif_sorular = {}     
+adam_asmaca_oyunlari = {} # Kanal bazlı adam asmaca oyun takibi
 
 OTO_CEVAPLAR = {
     "sa": "as",
@@ -42,6 +43,12 @@ GUNCEL_SORULAR = [
     {"soru": "🧠 **Günün Bilgi Sorusu:** İstanbul hangi yıl feth edilmiştir?", "cevap": "1453"}
 ]
 
+ASMACA_KELIMELERI = [
+    "bilgisayar", "galatasaray", "istanbul", "programlama", "discord", 
+    "futbolcu", "mühendis", "teknoloji", "matematik", "üniversite",
+    "kahraman", "kütüphane", "laboratuvar", "televizyon", "gökyüzü"
+]
+
 mesaj_sayaci = 0
 
 @bot.event
@@ -49,7 +56,7 @@ async def on_ready():
     print(f"Giriş yapıldı! Bot aktif: {bot.user}")
     istatistik_guncelle.start()
 
-# --- 0. OTOMATİK İSTATİSTİK (SAYAÇ) GÜNCELLEYİCİ LOOP ---
+# --- 0. OTOMATİK İSTATİSTİK GÜNCELLEYİCİ LOOP ---
 @tasks.loop(minutes=5)
 async def istatistik_guncelle():
     for guild in bot.guilds:
@@ -294,7 +301,7 @@ async def on_voice_state_update(member, before, after):
                 ses_xp[member.id] = ses_xp.get(member.id, 0) + kazanilan_ses_xp
             del ses_takip[member.id]
 
-# --- 4. MESAJ KONTROLÜ, KÜFÜR FİLTRESİ VE AKILLI BİLGİ SORULARI ---
+# --- 4. MESAJ KONTROLÜ, KÜFÜR FİLTRESİ VE ADAM ASMACA / BİLGİ SORULARI ---
 @bot.event
 async def on_message(message):
     global mesaj_sayaci
@@ -303,6 +310,32 @@ async def on_message(message):
 
     mesaj_metni = message.content.lower().strip()
     
+    # Adam Asmaca Harf Tahmini Kontrolü
+    if message.channel.id in adam_asmaca_oyunlari and len(mesaj_metni) == 1 and mesaj_metni.isalpha():
+        oyun = adam_asmaca_oyunlari[message.channel.id]
+        harf = mesaj_metni
+        
+        if harf in oyun["tahminler"]:
+            await message.channel.send(f"⚠️ Bu harfi zaten söyledin, başka bir harf dene!", delete_after=4)
+        elif harf in oyun["kelime"]:
+            oyun["tahminler"].append(harf)
+             gizli_goruntu = " ".join([h if h in oyun["tahminler"] else "_" for h in oyun["kelime"]])
+            if "_" not in gizli_goruntu:
+                await message.channel.send(f"🎉 Tebrikler {message.author.mention}! Kelimeyi doğru bildin: **{oyun['kelime'].upper()}**. **Çok akıllısın maşallah!** 👑")
+                del adam_asmaca_oyunlari[message.channel.id]
+            else:
+                await message.channel.send(f"✅ Doğru harf! Durum: `{gizli_goruntu}`\nSöylenenler: {', '.join(oyun['tahminler'])}")
+        else:
+            oyun["tahminler"].append(harf)
+            oyun["can"] -= 1
+            if oyun["can"] <= 0:
+                await message.channel.send(f"💀 Oyunu kaybettin! Asıldın... Doğru kelime: **{oyun['kelime'].upper()}**")
+                del adam_asmaca_oyunlari[message.channel.id]
+            else:
+                gizli_goruntu = " ".join([h if h in oyun['tahminler'] else "_" for h in oyun['kelime']])
+                await message.channel.send(f"❌ Yanlış harf! Kalan Can: **{oyun['can']}** ❤️\nDurum: `{gizli_goruntu}`")
+
+    # Günün Sorusu Kontrolü
     if message.channel.id in aktif_sorular:
         dogru_cevap = aktif_sorular[message.channel.id]
         if dogru_cevap in mesaj_metni:
@@ -360,7 +393,29 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-# --- 5. OTOMATİK İSTATİSTİK KURULUM KOMUTU (!kurulum) ---
+# --- 5. ADAM ASMACA KOMUTU (!adam-asmaca) ---
+@bot.command(name="adam-asmaca")
+async def adam_asmaca(ctx):
+    if ctx.channel.id in adam_asmaca_oyunlari:
+        await ctx.send("⚠️ Bu kanalda zaten devam eden bir Adam Asmaca oyunu var!")
+        return
+
+    secilen_kelime = random.choice(ASMACA_KELIMELERI)
+    adam_asmaca_oyunlari[ctx.channel.id] = {
+        "kelime": secilen_kelime,
+        "tahminler": [],
+        "can": 6
+    }
+
+    gizli_goruntu = " ".join(["_" for _ in secilen_kelime])
+    embed = discord.Embed(
+        title="🎮 Adam Asmaca Başladı!",
+        description=f"Kelimeyi bulmak için sohbetten tek harf yazarak tahmin et!\n\n**Kelime:** `{gizli_goruntu}`\n❤️ **Kalan Can:** 6",
+        color=discord.Color.blue()
+    )
+    await ctx.send(embed=embed)
+
+# --- 6. OTOMATİK İSTATİSTİK KURULUM KOMUTU (!kurulum) ---
 @bot.command(name="kurulum")
 @commands.has_permissions(administrator=True)
 async def kurulum(ctx):
@@ -369,10 +424,7 @@ async def kurulum(ctx):
         guild.default_role: discord.PermissionOverwrite(connect=False, view_channel=True)
     }
     
-    # Kategori Oluştur
     kategori = await guild.create_category("📊 İstatistikler")
-    
-    # Sayaç Kanalları Oluştur
     await guild.create_voice_channel(f"📊 Toplam Üye: {guild.member_count}", category=kategori, overwrites=overwrites)
     
     uye_sayisi = len([m for m in guild.members if not m.bot])
@@ -383,7 +435,7 @@ async def kurulum(ctx):
     
     await ctx.send("✅ Sunucu istatistik kanalları başarıyla kuruldu ve sayaçlar aktif edildi!")
 
-# --- 6. YARDIM MENÜSÜ ---
+# --- 7. YARDIM MENÜSÜ ---
 @bot.command(name="yardim")
 async def yardim(ctx):
     embed = discord.Embed(
@@ -391,6 +443,7 @@ async def yardim(ctx):
         description="Sunucuyu yönetmek ve eğlenmek için kullanabileceğin tüm komutlar:",
         color=discord.Color.green()
     )
+    embed.add_field(name="!adam-asmaca", value="Kanalda Adam Asmaca oyununu başlatır.", inline=False)
     embed.add_field(name="!kurulum", value="Sunucu istatistik kanallarını otomatik kurar (Yönetici).", inline=False)
     embed.add_field(name="!yardim", value="Komutları listeler.", inline=False)
     embed.add_field(name="!git <ses kanalı>", value="Boşsa direkt gider, doluysa odadakilerin ✅ onayından sonra seni içeri alır.", inline=False)
@@ -416,7 +469,7 @@ async def yardim(ctx):
     embed.add_field(name="!kick / !ban", value="Üye atar/yasaklar (Yönetici).", inline=False)
     await ctx.send(embed=embed)
 
-# --- 7. SES KANALINA GİTME VE EMOJİ ONAY SİSTEMİ (!git) ---
+# --- 8. SES KANALINA GİTME VE EMOJİ ONAY SİSTEMİ (!git) ---
 @bot.command(name="git")
 async def git(ctx, *, kanal_adi: str):
     hedef_kanal = discord.utils.get(ctx.guild.voice_channels, name=kanal_adi)
@@ -457,7 +510,7 @@ async def git(ctx, *, kanal_adi: str):
     except asyncio.TimeoutError:
         await ctx.send(f"⏱️ Süre doldu, **{hedef_kanal.name}** odasından kimse onay vermedi.")
 
-# --- 8. ÖZEL ODA VE SAYAÇ KOMUTLARI ---
+# --- 9. ÖZEL ODA VE SAYAÇ KOMUTLARI ---
 @bot.command(name="oda-kapat")
 async def oda_kapat(ctx):
     if ctx.author.voice and ctx.author.voice.channel:
@@ -502,7 +555,7 @@ async def autorol_ayarla(ctx, *, rol_adi: str):
     else:
         await ctx.send(f"❌ '{rol_adi}' adında bir rol bulunamadı.")
 
-# --- 9. DİĞER KOMUTLAR ---
+# --- 10. DİĞER KOMUTLAR ---
 @bot.command(name="ses-seviye")
 async def ses_seviye(ctx, member: discord.Member = None):
     member = member or ctx.author
