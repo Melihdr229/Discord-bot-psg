@@ -2,7 +2,7 @@ import os
 import random
 import asyncio
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from keep_alive import keep_alive
 
 intents = discord.Intents.default()
@@ -21,7 +21,7 @@ kilitli_odalilar = set()
 aktif_tahminler = {}  
 afk_kullanicilar = {}  
 uyari_veritabani = {}  
-aktif_sorular = {}     # Günün sorularını ve doğru cevaplarını takip etmek için
+aktif_sorular = {}     
 
 OTO_CEVAPLAR = {
     "sa": "as",
@@ -33,7 +33,6 @@ YASAKLI_KELIMELER = [
     "küfür1", "küfür2"
 ]
 
-# Günün Bilgi Soruları ve Doğru Cevapları (Küçük harfle yazılır)
 GUNCEL_SORULAR = [
     {"soru": "🧠 **Günün Bilgi Sorusu:** Hangi futbol takımı, Şampiyonlar Ligi'ni en çok kazanan kulüptür?", "cevap": "real madrid"},
     {"soru": "🧠 **Günün Bilgi Sorusu:** Türkiye'nin yüz ölçümü bakımından en büyük şehri hangisidir?", "cevap": "konya"},
@@ -48,6 +47,30 @@ mesaj_sayaci = 0
 @bot.event
 async def on_ready():
     print(f"Giriş yapıldı! Bot aktif: {bot.user}")
+    istatistik_guncelle.start()
+
+# --- 0. OTOMATİK İSTATİSTİK (SAYAÇ) GÜNCELLEYİCİ LOOP ---
+@tasks.loop(minutes=5)
+async def istatistik_guncelle():
+    for guild in bot.guilds:
+        for channel in guild.voice_channels:
+            if "Toplam Üye:" in channel.name:
+                try:
+                    await channel.edit(name=f"📊 Toplam Üye: {guild.member_count}")
+                except:
+                    pass
+            elif "Kullanıcı:" in channel.name:
+                try:
+                    uye_sayisi = len([m for m in guild.members if not m.bot])
+                    await channel.edit(name=f"👤 Kullanıcı: {uye_sayisi}")
+                except:
+                    pass
+            elif "Bot Sayısı:" in channel.name:
+                try:
+                    bot_sayisi = len([m for m in guild.members if m.bot])
+                    await channel.edit(name=f"🤖 Bot Sayısı: {bot_sayisi}")
+                except:
+                    pass
 
 # --- 1. OTOMATİK ROL VE HOŞ GELDİN MESAJI ---
 @bot.event
@@ -280,11 +303,10 @@ async def on_message(message):
 
     mesaj_metni = message.content.lower().strip()
     
-    # Günün sorusu aktifse ve kullanıcı doğru cevap verdiyse
     if message.channel.id in aktif_sorular:
         dogru_cevap = aktif_sorular[message.channel.id]
         if dogru_cevap in mesaj_metni:
-            await message.channel.send(f"🎉 Helal olsun {message.author.mention}, doğru bildin! **Çok akıllısın maşallah!** 🧠✨ Crown 👑")
+            await message.channel.send(f"🎉 Helal olsun {message.author.mention}, doğru bildin! **Çok akıllısın maşallah!** 👑")
             del aktif_sorular[message.channel.id]
 
     if mesaj_metni in OTO_CEVAPLAR:
@@ -338,7 +360,30 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-# --- 5. YARDIM MENÜSÜ ---
+# --- 5. OTOMATİK İSTATİSTİK KURULUM KOMUTU (!kurulum) ---
+@bot.command(name="kurulum")
+@commands.has_permissions(administrator=True)
+async def kurulum(ctx):
+    guild = ctx.guild
+    overwrites = {
+        guild.default_role: discord.PermissionOverwrite(connect=False, view_channel=True)
+    }
+    
+    # Kategori Oluştur
+    kategori = await guild.create_category("📊 İstatistikler")
+    
+    # Sayaç Kanalları Oluştur
+    await guild.create_voice_channel(f"📊 Toplam Üye: {guild.member_count}", category=kategori, overwrites=overwrites)
+    
+    uye_sayisi = len([m for m in guild.members if not m.bot])
+    await guild.create_voice_channel(f"👤 Kullanıcı: {uye_sayisi}", category=kategori, overwrites=overwrites)
+    
+    bot_sayisi = len([m for m in guild.members if m.bot])
+    await guild.create_voice_channel(f"🤖 Bot Sayısı: {bot_sayisi}", category=kategori, overwrites=overwrites)
+    
+    await ctx.send("✅ Sunucu istatistik kanalları başarıyla kuruldu ve sayaçlar aktif edildi!")
+
+# --- 6. YARDIM MENÜSÜ ---
 @bot.command(name="yardim")
 async def yardim(ctx):
     embed = discord.Embed(
@@ -346,6 +391,7 @@ async def yardim(ctx):
         description="Sunucuyu yönetmek ve eğlenmek için kullanabileceğin tüm komutlar:",
         color=discord.Color.green()
     )
+    embed.add_field(name="!kurulum", value="Sunucu istatistik kanallarını otomatik kurar (Yönetici).", inline=False)
     embed.add_field(name="!yardim", value="Komutları listeler.", inline=False)
     embed.add_field(name="!git <ses kanalı>", value="Boşsa direkt gider, doluysa odadakilerin ✅ onayından sonra seni içeri alır.", inline=False)
     embed.add_field(name="!oda-kapat / !oda-aç", value="Özel ses odasını kilitler/açar.", inline=False)
@@ -370,7 +416,7 @@ async def yardim(ctx):
     embed.add_field(name="!kick / !ban", value="Üye atar/yasaklar (Yönetici).", inline=False)
     await ctx.send(embed=embed)
 
-# --- 6. SES KANALINA GİTME VE EMOJİ ONAY SİSTEMİ (!git) ---
+# --- 7. SES KANALINA GİTME VE EMOJİ ONAY SİSTEMİ (!git) ---
 @bot.command(name="git")
 async def git(ctx, *, kanal_adi: str):
     hedef_kanal = discord.utils.get(ctx.guild.voice_channels, name=kanal_adi)
@@ -411,7 +457,7 @@ async def git(ctx, *, kanal_adi: str):
     except asyncio.TimeoutError:
         await ctx.send(f"⏱️ Süre doldu, **{hedef_kanal.name}** odasından kimse onay vermedi.")
 
-# --- 7. ÖZEL ODA VE SAYAÇ KOMUTLARI ---
+# --- 8. ÖZEL ODA VE SAYAÇ KOMUTLARI ---
 @bot.command(name="oda-kapat")
 async def oda_kapat(ctx):
     if ctx.author.voice and ctx.author.voice.channel:
@@ -456,7 +502,7 @@ async def autorol_ayarla(ctx, *, rol_adi: str):
     else:
         await ctx.send(f"❌ '{rol_adi}' adında bir rol bulunamadı.")
 
-# --- 8. DİĞER KOMUTLAR ---
+# --- 9. DİĞER KOMUTLAR ---
 @bot.command(name="ses-seviye")
 async def ses_seviye(ctx, member: discord.Member = None):
     member = member or ctx.author
