@@ -23,7 +23,7 @@ afk_kullanicilar = {}
 uyari_veritabani = {}  
 aktif_sorular = {}     
 adam_asmaca_oyunlari = {} 
-milyoner_oyunlari = {} # Aktif Milyoner turları
+milyoner_oyunlari = {} 
 
 OTO_CEVAPLAR = {
     "sa": "as",
@@ -52,102 +52,61 @@ ASMACA_KATEGORILERI = {
     "matematik": ["türev", "integral", "geometri", "matris", "fonksiyon", "trigonometri", "logaritma", "olasılık", "parabol"]
 }
 
-# 5 Aşamalı Zorluk ve Ödül Basamaklarına Göre Milyoner Soru Havuzu
 MILYONER_VERITABANI = {
     "lol": [
-        # Soru 1 (1.000 TL)
-        {"soru": "League of Legends oyununda haritada tarafsız canavarların doğduğu alanlara ne ad verilir?", "secenekler": ["A) Üs (Base)", "B) Orman (Jungle)", "C) Koridor (Lane)", "D) Dükkan (Shop)"], "cevap": "b", "odul": "1.000 TL"},
-        # Soru 2 (10.000 TL)
-        {"soru": "Blitzcrank karakterinin Q yeteneğinin adı nedir?", "secenekler": ["A) Rocket Grab (Roket El)", "B) Power Fist", "C) Static Field", "D) Overdrive"], "cevap": "a", "odul": "10.000 TL"},
-        # Soru 3 (50.000 TL)
-        {"soru": "Hangisi League of Legends evrelerinde bir orman kampı değildir?", "secenekler": ["A) Kurtlar", "B) Kayacıllar", "C) Ejderha", "D) Ejderha Yavrusu Yuvası"], "cevap": "d", "odul": "50.000 TL"},
-        # Soru 4 (250.000 TL)
+        {"soru": "League of Legends oyununda 'Baron Nashor' katledildiğinde takıma hangi kalıcı güçlendirme verilir?", "secenekler": ["A) Elixir of Iron", "B) Hand of Baron (Nashor Gücü)", "C) Aspect of the Dragon", "D) Crest of Cinders"], "cevap": "b", "odul": "1.000 TL"},
+        {"soru": "Hangisi League of Legends evrelerinde bir orman kampı değildir?", "secenekler": ["A) Kurtlar", "B) Kayacıllar", "C) Ejderha", "D) Ejderha Yavrusu Yuvası"], "cevap": "d", "odul": "10.000 TL"},
+        {"soru": "Blitzcrank karakterinin Q yeteneğinin adı nedir?", "secenekler": ["A) Rocket Grab (Roket El)", "B) Power Fist", "C) Static Field", "D) Overdrive"], "cevap": "a", "odul": "50.000 TL"},
         {"soru": "League of Legends'da dereceli sistemde Ustalık ile Şampiyonluk arasında yer alan lig hangisidir?", "secenekler": ["A) Elmas", "B) Üstadlık (Grandmaster)", "C) Zümrüt", "D) Demir"], "cevap": "b", "odul": "250.000 TL"},
-        # Soru 5 (1.000.000 TL)
         {"soru": "League of Legends oyununda 'Baron Nashor' katledildiğinde takıma hangi kalıcı güçlendirme verilir?", "secenekler": ["A) Elixir of Iron", "B) Hand of Baron (Nashor Gücü)", "C) Aspect of the Dragon", "D) Crest of Cinders"], "cevap": "b", "odul": "1.000.000 TL"}
     ],
     "valorant": [
-        # Soru 1 (1.000 TL)
         {"soru": "Valorant oyununda bomba olarak adlandırılan nesnenin resmi adı nedir?", "secenekler": ["A) C4", "B) Spike", "C) Bomb", "D) Dinamit"], "cevap": "b", "odul": "1.000 TL"},
-        # Soru 2 (10.000 TL)
         {"soru": "Ajan Brimstone hangi sınıfa (Role) aittir?", "secenekler": ["A) Düellocu", "B) Kontrol Uzmanı (Controller)", "C) Öncü", "D) Gözcü"], "cevap": "b", "odul": "10.000 TL"},
-        # Soru 3 (50.000 TL)
         {"soru": "Hangisi Valorant'ın 'Öncü (Initiator)' ajanlarından biri değildir?", "secenekler": ["A) Sova", "B) Skye", "C) Jett", "D) Fade"], "cevap": "c", "odul": "50.000 TL"},
-        # Soru 4 (250.000 TL)
         {"soru": "Valorant oyununda Spike'ı yerleştirmek (plant) normal şartlarda kaç saniye sürer?", "secenekler": ["A) 2 saniye", "B) 4 saniye", "C) 6 saniye", "D) 8 saniye"], "cevap": "b", "odul": "250.000 TL"},
-        # Soru 5 (1.000.000 TL)
         {"soru": "Valorant'ta en yüksek rekabetçi rütbe kademesi aşağıdakilerden hangisidir?", "secenekler": ["A) Yücelik", "B) Ölümsüzlük", "C) Radiant (Radyant)", "D) Elmas"], "cevap": "c", "odul": "1.000.000 TL"}
     ],
     "tarih": [
-        # Soru 1 (1.000 TL)
         {"soru": "İstanbul kaç yılında Fatih Sultan Mehmet tarafından fethedilmiştir?", "secenekler": ["A) 1299", "B) 1453", "C) 1517", "D) 1923"], "cevap": "b", "odul": "1.000 TL"},
-        # Soru 2 (10.000 TL)
         {"soru": "Türkiye Cumhuriyeti'nin ilk başbakanı kimdir?", "secenekler": ["A) İsmet İnönü", "B) Celâl Bayar", "C) Fevzi Çakmak", "D) Kazım Karabekir"], "cevap": "a", "odul": "10.000 TL"},
-        # Soru 3 (50.000 TL)
         {"soru": "Mustafa Kemal Atatürk'e 'Gazi' unvanı hangi savaştan sonra verilmiştir?", "secenekler": ["A) Çanakkale Savaşı", "B) Sakarya Meydan Muharebesi", "C) Büyük Taarruz", "D) I. İnönü Savaşı"], "cevap": "b", "odul": "50.000 TL"},
-        # Soru 4 (250.000 TL)
         {"soru": "Türk tarihinde 'Yurt Açan Savaş' olarak bilinen savaş hangisidir?", "secenekler": ["A) Miryokefalon", "B) Malazgirt", "C) Dandanakan", "D) Pasinler"], "cevap": "b", "odul": "250.000 TL"},
-        # Soru 5 (1.000.000 TL)
         {"soru": "Osmanlı İmparatorluğu'nun kuruluş yılı resmi olarak genellikle hangi yıl kabul edilir?", "secenekler": ["A) 1299", "B) 1302", "C) 1453", "D) 1071"], "cevap": "a", "odul": "1.000.000 TL"}
     ],
     "coğrafya": [
-        # Soru 1 (1.000 TL)
         {"soru": "Türkiye'nin yüz ölçümü bakımından en büyük ili hangisidir?", "secenekler": ["A) Ankara", "B) Sivas", "C) Konya", "D) Van"], "cevap": "c", "odul": "1.000 TL"},
-        # Soru 2 (10.000 TL)
         {"soru": "Türkiye'nin en yüksek dağı olan Ağrı Dağı hangi ilimiz sınırları içerisindedir?", "secenekler": ["A) Erzurum", "B) Van", "C) Iğdır / Ağrı", "D) Kars"], "cevap": "c", "odul": "10.000 TL"},
-        # Soru 3 (50.000 TL)
         {"soru": "Dünyanın en uzun nehirleri arasında gösterilen Nil Nehri hangi kıtada yer alır?", "secenekler": ["A) Asya", "B) Afrika", "C) Güney Amerika", "D) Avrupa"], "cevap": "b", "odul": "50.000 TL"},
-        # Soru 4 (250.000 TL)
         {"soru": "Hangi kıta yüz ölçümü bakımından dünyanın en küçük kıtasıdır?", "secenekler": ["A) Avrupa", "B) Antarktika", "C) Okyanusya (Avustralya)", "D) Güney Amerika"], "cevap": "c", "odul": "250.000 TL"},
-        # Soru 5 (1.000.000 TL)
         {"soru": "Dünyanın en derin okyanus çukuru olan 'Mariana Çukuru' hangi okyanusta yer alır?", "secenekler": ["A) Atlas Okyanusu", "B) Hint Okyanusu", "C) Pasifik (Büyük) Okyanus", "D) Arktik Okyanusu"], "cevap": "c", "odul": "1.000.000 TL"}
     ],
     "müzik": [
-        # Soru 1 (1.000 TL)
         {"soru": "Müzik notalarında 'sol anahtarı' portenin kaçıncı çizgisinden başlar?", "secenekler": ["A) 1. Çizgi", "B) 2. Çizgi", "C) 3. Çizgi", "D) 4. Çizgi"], "cevap": "b", "odul": "1.000 TL"},
-        # Soru 2 (10.000 TL)
         {"soru": "Aşağıdaki enstrümanlardan hangisi yaylı çalgılar grubuna girer?", "secenekler": ["A) Flüt", "B) Viyolonsel (Çello)", "C) Klarnet", "D) Trompet"], "cevap": "b", "odul": "10.000 TL"},
-        # Soru 3 (50.000 TL)
         {"soru": "Klasik batı müziğinde 'en yavaş' tempo terimi aşağıdakilerden hangisidir?", "secenekler": ["A) Allegro", "B) Andante", "C) Largo", "D) Presto"], "cevap": "c", "odul": "50.000 TL"},
-        # Soru 4 (250.000 TL)
         {"soru": "Türkiye'de 'Dönence' ve 'Aldırma Gönül' gibi unutulmaz eserlere imza atmış Anadolu Rock grubu hangisidir?", "secenekler": ["A) Duman", "B) Moğollar", "C) MFÖ", "D) Athena"], "cevap": "b", "odul": "250.000 TL"},
-        # Soru 5 (1.000.000 TL)
         {"soru": "Dünyaca ünlü 'Bohemian Rhapsody' şarkısı hangi efsanevi müzik grubuna aittir?", "secenekler": ["A) The Beatles", "B) Pink Floyd", "C) Queen", "D) Led Zeppelin"], "cevap": "c", "odul": "1.000.000 TL"}
     ],
     "futbol": [
-        # Soru 1 (1.000 TL)
         {"soru": "Bir futbol maçında kaleci dışında bir oyuncunun elle müdahale etmesi sonucu hakemin verdiği ceza atışı hangisidir?", "secenekler": ["A) Taç", "B) Korner", "C) Penaltı", "D) Endirekt Vuruş"], "cevap": "c", "odul": "1.000 TL"},
-        # Soru 2 (10.000 TL)
         {"soru": "Türkiye A Milli Futbol Takımı, FIFA Dünya Kupası tarihindeki en iyi derecesi olan üçüncülüğü hangi yılda elde etmiştir?", "secenekler": ["A) 1996", "B) 2002", "C) 2008", "D) 2020"], "cevap": "b", "odul": "10.000 TL"},
-        # Soru 3 (50.000 TL)
         {"soru": "Dünyada 'Kral' lakabıyla tanınan ve 3 kez Dünya Kupası kazanan efsanevi Brezilyalı futbolcu kimdir?", "secenekler": ["A) Maradona", "B) Pele", "C) Ronaldinho", "D) Ronaldo Nazario"], "cevap": "b", "odul": "50.000 TL"},
-        # Soru 4 (250.000 TL)
         {"soru": "Hangi futbol kulübü UEFA Şampiyonlar Ligi'ni tarihte en çok kazanan takımdır?", "secenekler": ["A) AC Milan", "B) Barcelona", "C) Real Madrid", "D) Bayern Munich"], "cevap": "c", "odul": "250.000 TL"},
-        # Soru 5 (1.000.000 TL)
-        {"soru": "Uluslararası Futbol Birliği Kurulu (IFAB) kurallarına göre resmi bir futbol maçında bir takımın sahada en az kaç oyuncusu kalırsa maç tatil edilir?", "secenekler": ["A) 5 oyuncu", "B) 6 oyuncu", "C) 7 oyuncu", "D) 9 oyuncu"], "cevap": "c", "odul": "1.000.000 TL"}
+        {"soru": "Uluslararası Futbol Birliği Kurulu kurallarına göre resmi bir maçta bir takımın sahada en az kaç oyuncusu kalırsa maç tatil edilir?", "secenekler": ["A) 5 oyuncu", "B) 6 oyuncu", "C) 7 oyuncu", "D) 9 oyuncu"], "cevap": "c", "odul": "1.000.000 TL"}
     ],
     "genel": [
-        # Soru 1 (1.000 TL)
         {"soru": "Güneş sistemindeki en büyük gezegen aşağıdakilerden hangisidir?", "secenekler": ["A) Satürn", "B) Jüpiter", "C) Neptün", "D) Mars"], "cevap": "b", "odul": "1.000 TL"},
-        # Soru 2 (10.000 TL)
         {"soru": "Mona Lisa tablosunu çizen dünyaca ünlü İtalyan sanatçı ve deha kimdir?", "secenekler": ["A) Donatello", "B) Leonardo da Vinci", "C) Michelangelo", "D) Raphael"], "cevap": "b", "odul": "10.000 TL"},
-        # Soru 3 (50.000 TL)
         {"soru": "Nobel Ödülleri hangi ülkede verilmektedir?", "secenekler": ["A) Almanya", "B) İsviçre", "C) İsveç", "D) Fransa"], "cevap": "c", "odul": "50.000 TL"},
-        # Soru 4 (250.000 TL)
         {"soru": "Periyodik tablonun ilk elementi ve evrende en bol bulunan kimyasal element hangisidir?", "secenekler": ["A) Helyum", "B) Oksijen", "C) Hidrojen", "D) Karbon"], "cevap": "c", "odul": "250.000 TL"},
-        # Soru 5 (1.000.000 TL)
         {"soru": "Dünyanın çevresini ilk kez dolaşan ve Magellan'ın seferini tamamlayan denizci kimdir?", "secenekler": ["A) Vasco da Gama", "B) Kristof Kolomb", "C) Juan Sebastián Elcano", "D) Amerigo Vespucci"], "cevap": "c", "odul": "1.000.000 TL"}
     ],
     "teknoloji": [
-        # Soru 1 (1.000 TL)
         {"soru": "İnternetin temelini oluşturan ve 'Ağların Ağı' anlamına gelen küresel sistemin kısaltması nedir?", "secenekler": ["A) WWW", "B) HTTP", "C) TCP", "D) LAN"], "cevap": "a", "odul": "1.000 TL"},
-        # Soru 2 (10.000 TL)
         {"soru": "Linux işletim sisteminin maskotu olan sevimli penguenin adı nedir?", "secenekler": ["A) Pingu", "B) Tux", "C) Linuxy", "D) Waddle"], "cevap": "b", "odul": "10.000 TL"},
-        # Soru 3 (50.000 TL)
         {"soru": "Yapay zeka alanında sıkça kullanılan 'ChatGPT' dil modelini geliştiren şirketin adı nedir?", "secenekler": ["A) Google", "B) Microsoft", "C) OpenAI", "D) Apple"], "cevap": "c", "odul": "50.000 TL"},
-        # Soru 4 (250.000 TL)
         {"soru": "Bilgisayarlarda veri depolamak için kullanılan ve elektrik kesildiğinde verileri silinmeyen kalıcı bellek hangisidir?", "secenekler": ["A) RAM", "B) Cache", "C) SSD / Sabit Disk", "D) Register"], "cevap": "c", "odul": "250.000 TL"},
-        # Soru 5 (1.000.000 TL)
         {"soru": "İlk programlanabilir elektronik bilgisayar olarak kabul edilen ve 1945 yılında geliştirilen devasa cihazın adı nedir?", "secenekler": ["A) ENIAC", "B) UNIVAC", "C) Altair 8800", "D) IBM 5100"], "cevap": "a", "odul": "1.000.000 TL"}
     ]
 }
@@ -416,13 +375,10 @@ async def on_message(message):
     # Kim Milyoner Olmak İster 5 Turlu Yarışma Kontrolü
     if message.channel.id in milyoner_oyunlari and mesaj_metni in ["a", "b", "c", "d"]:
         oyun = milyoner_oyunlari[message.channel.id]
-        
-        # Sadece oyunu başlatan kişi cevap verebilsin
         if message.author.id != oyun["oyuncu_id"]:
             return
 
         aktif_soru = oyun["sorular"][oyun["tur"]]
-        
         if mesaj_metni == aktif_soru["cevap"]:
             oyun["tur"] += 1
             if oyun["tur"] >= 5:
@@ -524,7 +480,7 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-# --- 5. KİM MİLYONER OLMAK İSTER KOMUTU (!milyoner [kategori]) ---
+# --- 5. OYUN KOMUTLARI ---
 @bot.command(name="milyoner")
 async def milyoner(ctx, kategori: str = None):
     if ctx.channel.id in milyoner_oyunlari:
@@ -539,9 +495,7 @@ async def milyoner(ctx, kategori: str = None):
     else:
         secilen_kat = random.choice(tum_kategoriler)
 
-    # Seçilen kategoriden 5 soruyu al
     kategori_sorulari = MILYONER_VERITABANI[secilen_kat]
-    
     milyoner_oyunlari[ctx.channel.id] = {
         "oyuncu_id": ctx.author.id,
         "sorular": kategori_sorulari,
@@ -558,7 +512,6 @@ async def milyoner(ctx, kategori: str = None):
     )
     await ctx.send(embed=embed)
 
-# --- 6. ADAM ASMACA KOMUTU (!adam-asmaca [kategori]) ---
 @bot.command(name="adam-asmaca")
 async def adam_asmaca(ctx, kategori: str = None):
     if ctx.channel.id in adam_asmaca_oyunlari:
@@ -566,7 +519,6 @@ async def adam_asmaca(ctx, kategori: str = None):
         return
 
     kategori = kategori.lower() if kategori else None
-    
     if kategori and kategori in ASMACA_KATEGORILERI:
         secilen_kelime = random.choice(ASMACA_KATEGORILERI[kategori])
         kategori_adi = kategori.upper()
@@ -590,72 +542,104 @@ async def adam_asmaca(ctx, kategori: str = None):
     )
     await ctx.send(embed=embed)
 
-# --- 7. OTOMATİK İSTATİSTİK KURULUM KOMUTU (!kurulum) ---
-@bot.command(name="kurulum")
-@commands.has_permissions(administrator=True)
-async def kurulum(ctx):
-    guild = ctx.guild
-    overwrites = {
-        guild.default_role: discord.PermissionOverwrite(connect=False, view_channel=True)
-    }
-    
-    kategori = await guild.create_category("📊 İstatistikler")
-    await guild.create_voice_channel(f"📊 Toplam Üye: {guild.member_count}", category=kategori, overwrites=overwrites)
-    
-    uye_sayisi = len([m for m in guild.members if not m.bot])
-    await guild.create_voice_channel(f"👤 Kullanıcı: {uye_sayisi}", category=kategori, overwrites=overwrites)
-    
-    bot_sayisi = len([m for m in guild.members if m.bot])
-    await guild.create_voice_channel(f"🤖 Bot Sayısı: {bot_sayisi}", category=kategori, overwrites=overwrites)
-    
-    await ctx.send("✅ Sunucu istatistik kanalları başarıyla kuruldu ve sayaçlar aktif edildi!")
+@bot.command(name="tahmin")
+async def tahmin(ctx):
+    aktif_tahminler[ctx.channel.id] = random.randint(1, 100)
+    await ctx.send("🎮 Sayı tahmin oyunu başladı (1-100)!")
 
-# --- 8. YARDIM MENÜSÜ ---
-@bot.command(name="yardim")
-async def yardim(ctx):
-    embed = discord.Embed(
-        title="🤖 Ultimate Mega Bot Komutları",
-        description="Sunucuyu yönetmek ve eğlenmek için kullanabileceğin tüm komutlar:",
-        color=discord.Color.green()
-    )
-    embed.add_field(name="!milyoner [lol/valorant/tarih/coğrafya/müzik/futbol/genel/teknoloji]", value="5 soruluk ödüllü Milyoner yarışması başlatır.", inline=False)
-    embed.add_field(name="!adam-asmaca [lol/valorant/minecraft/tarih/matematik]", value="Adam Asmaca oyunu başlatır.", inline=False)
-    embed.add_field(name="!kurulum", value="Sunucu istatistik kanallarını otomatik kurar (Yönetici).", inline=False)
-    embed.add_field(name="!yardim", value="Komutları listeler.", inline=False)
-    embed.add_field(name="!git <ses kanalı>", value="Boşsa direkt gider, doluysa odadakilerin ✅ onayından sonra seni içeri alır.", inline=False)
-    embed.add_field(name="!oda-kapat / !oda-aç", value="Özel ses odasını kilitler/açar.", inline=False)
-    embed.add_field(name="!sayaç", value="Sunucu üye hedefini gösterir.", inline=False)
-    embed.add_field(name="!autorol-ayarla <rol>", value="Oto-rolü ayarlar (Yönetici).", inline=False)
-    embed.add_field(name="!ses-seviye [@kullanıcı]", value="Ses aktiflik puanını gösterir.", inline=False)
-    embed.add_field(name="!kadro-kur [pozisyon]", value="20 TL bütçeli futbol kadro oyunu.", inline=False)
-    embed.add_field(name="!rastgele-kadro", value="Rastgele 11 kurar.", inline=False)
-    embed.add_field(name="!rol-mesaj @Rol <mesaj>", value="Roldeki herkese DM atar (Yönetici).", inline=False)
-    embed.add_field(name="!afk <sebep>", value="Uzakta moduna geçiş.", inline=False)
-    embed.add_field(name="!öneri <mesaj>", value="Öneri gönderir.", inline=False)
-    embed.add_field(name="!tahmin", value="Sayı tahmin oyunu.", inline=False)
-    embed.add_field(name="!çekiliş <saniye> <ödül>", value="Çekiliş başlatır (Yönetici).", inline=False)
-    embed.add_field(name="!profil / !kullanıcı-bilgi", value="Kullanıcı profili ve detayları.", inline=False)
-    embed.add_field(name="!sunucu-bilgi", value="Sunucu bilgileri.", inline=False)
-    embed.add_field(name="!zar / !yazıtura", value="Eğlence komutları.", inline=False)
-    embed.add_field(name="!uyarı / !uyarılar / !uyarı-sil", value="Uyarı yönetim sistemi.", inline=False)
-    embed.add_field(name="!yavaşmod <saniye>", value="Kanalı yavaş moda alır (Yönetici).", inline=False)
-    embed.add_field(name="!kilit / !aç", value="Kanalı kilitler/açar (Yönetici).", inline=False)
-    embed.add_field(name="!kanal-aç <isim>", value="Kanal açar (Yönetici).", inline=False)
-    embed.add_field(name="!sil <sayı>", value="Mesaj siler (Yönetici).", inline=False)
-    embed.add_field(name="!kick / !ban", value="Üye atar/yasaklar (Yönetici).", inline=False)
+@bot.command(name="kadro-kur")
+async def kadro_kur(ctx, kategori: str = "genel"):
+    kategori = kategori.lower()
+    if kategori == "kaleci":
+        desc = "**9 TL:** Neuer, Buffon, Courtois\n**1 TL:** Altay, Uğurcan"
+    elif kategori == "defans":
+        desc = "**9 TL:** Maldini, Ramos\n**1 TL:** Maguire, Çağlar"
+    elif kategori == "orta":
+        desc = "**9 TL:** Zidane, Iniesta, Modric\n**1 TL:** İsmail Yüksek"
+    elif kategori == "forvet":
+        desc = "**9 TL:** Messi, Ronaldo, Pelé\n**1 TL:** Cenk Tosun"
+    else:
+        desc = "20 TL bütçen var! Pozisyonlar: `!kadro-kur kaleci/defans/orta/forvet`"
+    await ctx.send(embed=discord.Embed(title="⚽ Futbolcu Havuzu", description=desc, color=discord.Color.dark_green()))
+
+@bot.command(name="rastgele-kadro")
+async def rastgele_kadro(ctx):
+    yildizlar = ["Messi", "Ronaldo (R9)", "Pelé", "Maradona", "Zidane", "Iniesta"]
+    secilenler = random.sample(yildizlar, min(5, len(yildizlar)))
+    await ctx.send(embed=discord.Embed(title="🎲 Rastgele Kadro", description="\n".join([f"• {oyuncu}" for oyuncu in secilenler]), color=discord.Color.orange()))
+
+@bot.command(name="zar")
+async def zar(ctx):
+    await ctx.send(f"🎲 Zar: **{random.randint(1, 6)}**")
+
+@bot.command(name="yazıtura")
+async def yazitura(ctx):
+    await ctx.send(f"🪙 Sonuç: **{random.choice(['Yazı', 'Tura'])}**")
+
+# --- 6. ÜYE & EĞLENCE KOMUTLARI ---
+@bot.command(name="seviye")
+async def seviye(ctx, member: discord.Member = None):
+    member = member or ctx.author
+    xp = user_xp.get(member.id, 0)
+    await ctx.send(embed=discord.Embed(title=f"⭐ {member.name} Seviye", description=f"XP: {xp} (Seviye: {xp // 100})", color=discord.Color.orange()))
+
+@bot.command(name="ses-seviye")
+async def ses_seviye(ctx, member: discord.Member = None):
+    member = member or ctx.author
+    puan = ses_xp.get(member.id, 0)
+    await ctx.send(embed=discord.Embed(title=f"🔊 {member.name} - Ses Puanı", description=f"{puan} Puan", color=discord.Color.blue()))
+
+@bot.command(name="afk")
+async def afk(ctx, *, sebep="Belirtilmedi"):
+    afk_kullanicilar[ctx.author.id] = sebep
+    await ctx.send(f"💤 {ctx.author.mention} AFK moduna geçti. Sebep: *{sebep}*")
+
+@bot.command(name="profil")
+async def profil(ctx, member: discord.Member = None):
+    member = member or ctx.author
+    await ctx.send(embed=discord.Embed(title=f"👤 {member.name}", description=f"Katılım: {member.joined_at.strftime('%d/%m/%Y')}", color=discord.Color.blue()))
+
+@bot.command(name="kullanıcı-bilgi")
+async def kullanici_bilgi(ctx, member: discord.Member = None):
+    member = member or ctx.author
+    embed = discord.Embed(title=f"🔍 {member.name}", description=f"ID: {member.id}\nKatılım: {member.joined_at.strftime('%d/%m/%Y')}", color=discord.Color.dark_blue())
     await ctx.send(embed=embed)
 
-# --- 9. SES KANALINA GİTME VE EMOJİ ONAY SİSTEMİ (!git) ---
+@bot.command(name="sunucu-bilgi")
+async def sunucu_bilgi(ctx):
+    g = ctx.guild
+    await ctx.send(embed=discord.Embed(title=f"📊 {g.name}", description=f"Sahip: {g.owner}\nÜye: {g.member_count}", color=discord.Color.purple()))
+
+@bot.command(name="sayaç")
+async def sayac(ctx):
+    g = ctx.guild
+    uye_sayisi = g.member_count
+    hedef = 100 
+    kalan = max(0, hedef - uye_sayisi)
+    embed = discord.Embed(
+        title="📊 Sunucu Sayaç & Hedef Durumu",
+        description=f"👥 **Toplam Üye:** {uye_sayisi}\n🎯 **Hedef Üye:** {hedef}\n⏳ **Hedefe Kalan:** {kalan} kişi",
+        color=discord.Color.teal()
+    )
+    await ctx.send(embed=embed)
+
+@bot.command(name="öneri")
+async def oneri(ctx, *, metin: str):
+    await ctx.message.delete()
+    kanal = discord.utils.get(ctx.guild.text_channels, name="öneri") or ctx.channel
+    gonderilen = await kanal.send(embed=discord.Embed(title="💡 Öneri", description=metin, color=discord.Color.gold()))
+    await gonderilen.add_reaction("👍")
+    await gonderilen.add_reaction("👎")
+
+# --- 7. SES ODASI KONTROLÜ ---
 @bot.command(name="git")
 async def git(ctx, *, kanal_adi: str):
     hedef_kanal = discord.utils.get(ctx.guild.voice_channels, name=kanal_adi)
-    
     if not hedef_kanal:
         await ctx.send(f"❌ '{kanal_adi}' adında bir ses kanalı bulunamadı!")
         return
 
     hedef_uye = ctx.message.mentions[0] if ctx.message.mentions else ctx.author
-
     if not hedef_uye.voice:
         await ctx.send(f"❌ {hedef_uye.mention} herhangi bir ses kanalında değil!")
         return
@@ -686,7 +670,6 @@ async def git(ctx, *, kanal_adi: str):
     except asyncio.TimeoutError:
         await ctx.send(f"⏱️ Süre doldu, **{hedef_kanal.name}** odasından kimse onay vermedi.")
 
-# --- 10. ÖZEL ODA VE SAYAÇ KOMUTLARI ---
 @bot.command(name="oda-kapat")
 async def oda_kapat(ctx):
     if ctx.author.voice and ctx.author.voice.channel:
@@ -708,18 +691,21 @@ async def oda_ac_komut(ctx):
     else:
         await ctx.send("❌ Önce kendi ses odana girmelisin!")
 
-@bot.command(name="sayaç")
-async def sayac(ctx):
-    g = ctx.guild
-    uye_sayisi = g.member_count
-    hedef = 100 
-    kalan = max(0, hedef - uye_sayisi)
-    embed = discord.Embed(
-        title="📊 Sunucu Sayaç & Hedef Durumu",
-        description=f"👥 **Toplam Üye:** {uye_sayisi}\n🎯 **Hedef Üye:** {hedef}\n⏳ **Hedefe Kalan:** {kalan} kişi",
-        color=discord.Color.teal()
-    )
-    await ctx.send(embed=embed)
+# --- 8. YÖNETİM VE MODERATÖRLÜK KOMUTLARI ---
+@bot.command(name="kurulum")
+@commands.has_permissions(administrator=True)
+async def kurulum(ctx):
+    guild = ctx.guild
+    overwrites = {
+        guild.default_role: discord.PermissionOverwrite(connect=False, view_channel=True)
+    }
+    kategori = await guild.create_category("📊 İstatistikler")
+    await guild.create_voice_channel(f"📊 Toplam Üye: {guild.member_count}", category=kategori, overwrites=overwrites)
+    uye_sayisi = len([m for m in guild.members if not m.bot])
+    await guild.create_voice_channel(f"👤 Kullanıcı: {uye_sayisi}", category=kategori, overwrites=overwrites)
+    bot_sayisi = len([m for m in guild.members if m.bot])
+    await guild.create_voice_channel(f"🤖 Bot Sayısı: {bot_sayisi}", category=kategori, overwrites=overwrites)
+    await ctx.send("✅ Sunucu istatistik kanalları başarıyla kuruldu ve sayaçlar aktif edildi!")
 
 @bot.command(name="autorol-ayarla")
 @commands.has_permissions(administrator=True)
@@ -730,53 +716,6 @@ async def autorol_ayarla(ctx, *, rol_adi: str):
         await ctx.send(f"✅ Yeni gelenler için otomatik verilecek rol **{rol_adi}** olarak güncellendi!")
     else:
         await ctx.send(f"❌ '{rol_adi}' adında bir rol bulunamadı.")
-
-# --- 11. DİĞER KOMUTLAR ---
-@bot.command(name="ses-seviye")
-async def ses_seviye(ctx, member: discord.Member = None):
-    member = member or ctx.author
-    puan = ses_xp.get(member.id, 0)
-    await ctx.send(embed=discord.Embed(title=f"🔊 {member.name} - Ses Puanı", description=f"{puan} Puan", color=discord.Color.blue()))
-
-@bot.command(name="kadro-kur")
-async def kadro_kur(ctx, kategori: str = "genel"):
-    kategori = kategori.lower()
-    if kategori == "kaleci":
-        desc = "**9 TL:** Neuer, Buffon, Courtois\n**1 TL:** Altay, Uğurcan"
-    elif kategori == "defans":
-        desc = "**9 TL:** Maldini, Ramos\n**1 TL:** Maguire, Çağlar"
-    elif kategori == "orta":
-        desc = "**9 TL:** Zidane, Iniesta, Modric\n**1 TL:** İsmail Yüksek"
-    elif kategori == "forvet":
-        desc = "**9 TL:** Messi, Ronaldo, Pelé\n**1 TL:** Cenk Tosun"
-    else:
-        desc = "20 TL bütçen var! Pozisyonlar: `!kadro-kur kaleci/defans/orta/forvet`"
-    await ctx.send(embed=discord.Embed(title="⚽ Futbolcu Havuzu", description=desc, color=discord.Color.dark_green()))
-
-@bot.command(name="rastgele-kadro")
-async def rastgele_kadro(ctx):
-    yildizlar = ["Messi", "Ronaldo (R9)", "Pelé", "Maradona", "Zidane", "Iniesta"]
-    secilenler = random.sample(yildizlar, min(5, len(yildizlar)))
-    await ctx.send(embed=discord.Embed(title="🎲 Rastgele Kadro", description="\n".join([f"• {oyuncu}" for oyuncu in secilenler]), color=discord.Color.orange()))
-
-@bot.command(name="rol-mesaj")
-@commands.has_permissions(administrator=True)
-async def rol_mesaj(ctx, role: discord.Role, *, mesaj: str):
-    await ctx.message.delete()
-    sayac = 0
-    for member in role.members:
-        if not member.bot:
-            try:
-                await member.send(f"📩 **{ctx.guild.name}** duyurusu:\n\n{mesaj}")
-                sayac += 1
-            except:
-                pass
-    await ctx.send(f"✅ {sayac} kişiye özelden mesaj atıldı.", delete_after=10)
-
-@bot.command(name="afk")
-async def afk(ctx, *, sebep="Belirtilmedi"):
-    afk_kullanicilar[ctx.author.id] = sebep
-    await ctx.send(f"💤 {ctx.author.mention} AFK moduna geçti. Sebep: *{sebep}*")
 
 @bot.command(name="çekiliş")
 @commands.has_permissions(administrator=True)
@@ -794,6 +733,20 @@ async def cekilis(ctx, sure: int, *, odul: str):
         await ctx.send(f"🎊 Tebrikler {kazanan.mention}! **{odul}** kazandın!")
     else:
         await ctx.send("❌ Yeterli katılım olmadı.")
+
+@bot.command(name="rol-mesaj")
+@commands.has_permissions(administrator=True)
+async def rol_mesaj(ctx, role: discord.Role, *, mesaj: str):
+    await ctx.message.delete()
+    sayac = 0
+    for member in role.members:
+        if not member.bot:
+            try:
+                await member.send(f"📩 **{ctx.guild.name}** duyurusu:\n\n{mesaj}")
+                sayac += 1
+            except:
+                pass
+    await ctx.send(f"✅ {sayac} kişiye özelden mesaj atıldı.", delete_after=10)
 
 @bot.command(name="uyarı")
 @commands.has_permissions(manage_messages=True)
@@ -823,20 +776,6 @@ async def yavasmod(ctx, saniye: int):
     await ctx.channel.slowmode_delay(saniye)
     await ctx.send(f"⏱️ Yavaş mod {saniye} saniye.")
 
-@bot.command(name="kullanıcı-bilgi")
-async def kullanici_bilgi(ctx, member: discord.Member = None):
-    member = member or ctx.author
-    embed = discord.Embed(title=f"🔍 {member.name}", description=f"ID: {member.id}\nKatılım: {member.joined_at.strftime('%d/%m/%Y')}", color=discord.Color.dark_blue())
-    await ctx.send(embed=embed)
-
-@bot.command(name="öneri")
-async def oneri(ctx, *, metin: str):
-    await ctx.message.delete()
-    kanal = discord.utils.get(ctx.guild.text_channels, name="öneri") or ctx.channel
-    gonderilen = await kanal.send(embed=discord.Embed(title="💡 Öneri", description=metin, color=discord.Color.gold()))
-    await gonderilen.add_reaction("👍")
-    await gonderilen.add_reaction("👎")
-
 @bot.command(name="kilit")
 @commands.has_permissions(manage_channels=True)
 async def kilit(ctx):
@@ -849,34 +788,17 @@ async def ac(ctx):
     await ctx.channel.set_permissions(ctx.guild.default_role, send_messages=True)
     await ctx.send("🔓 Kanal açıldı.")
 
-@bot.command(name="tahmin")
-async def tahmin(ctx):
-    aktif_tahminler[ctx.channel.id] = random.randint(1, 100)
-    await ctx.send("🎮 Sayı tahmin oyunu başladı (1-100)!")
+@bot.command(name="kanal-aç")
+@commands.has_permissions(manage_channels=True)
+async def kanal_ac(ctx, *, kanal_adi: str):
+    await ctx.guild.create_text_channel(kanal_adi)
+    await ctx.send(f"✅ {kanal_adi} açıldı!")
 
-@bot.command(name="seviye")
-async def seviye(ctx, member: discord.Member = None):
-    member = member or ctx.author
-    xp = user_xp.get(member.id, 0)
-    await ctx.send(embed=discord.Embed(title=f"⭐ {member.name} Seviye", description=f"XP: {xp} (Seviye: {xp // 100})", color=discord.Color.orange()))
-
-@bot.command(name="sunucu-bilgi")
-async def sunucu_bilgi(ctx):
-    g = ctx.guild
-    await ctx.send(embed=discord.Embed(title=f"📊 {g.name}", description=f"Sahip: {g.owner}\nÜye: {g.member_count}", color=discord.Color.purple()))
-
-@bot.command(name="profil")
-async def profil(ctx, member: discord.Member = None):
-    member = member or ctx.author
-    await ctx.send(embed=discord.Embed(title=f"👤 {member.name}", description=f"Katılım: {member.joined_at.strftime('%d/%m/%Y')}", color=discord.Color.blue()))
-
-@bot.command(name="zar")
-async def zar(ctx):
-    await ctx.send(f"🎲 Zar: **{random.randint(1, 6)}**")
-
-@bot.command(name="yazıtura")
-async def yazitura(ctx):
-    await ctx.send(f"🪙 Sonuç: **{random.choice(['Yazı', 'Tura'])}**")
+@bot.command(name="sil")
+@commands.has_permissions(manage_messages=True)
+async def sil(ctx, miktar: int = 5):
+    await ctx.channel.purge(limit=miktar + 1)
+    await ctx.send(f"🧹 {miktar} mesaj silindi!", delete_after=5)
 
 @bot.command(name="kick")
 @commands.has_permissions(kick_members=True)
@@ -890,17 +812,72 @@ async def ban(ctx, member: discord.Member, *, sebep="Belirtilmedi"):
     await member.ban(reason=sebep)
     await ctx.send(f"🔨 {member.name} yasaklandı.")
 
-@bot.command(name="kanal-aç")
-@commands.has_permissions(manage_channels=True)
-async def kanal_ac(ctx, *, kanal_adi: str):
-    await ctx.guild.create_text_channel(kanal_adi)
-    await ctx.send(f"✅ {kanal_adi} açıldı!")
+# --- 9. YENİ KATEGORİLİ GELİŞMİŞ YARDIM MENÜSÜ ---
+@bot.command(name="yardim")
+async def yardim(ctx):
+    embed = discord.Embed(
+        title="🤖 Ultimate Mega Bot - Komut Merkez",
+        description="Sunucuyu yönetmek ve eğlenmek için kategorize edilmiş komut listesi:",
+        color=discord.Color.green()
+    )
+    
+    embed.add_field(
+        name="🎮 1. Oyun & Eğlence",
+        value=(
+            "• `!milyoner [kategori]` - 5 soruluk Milyoner yarışması\n"
+            "• `!adam-asmaca [kategori]` - Adam asmaca oyunu\n"
+            "• `!tahmin` - Sayı tahmin oyunu (1-100)\n"
+            "• `!kadro-kur [pozisyon]` - 20 TL bütçeli futbol kadro oyunu\n"
+            "• `!rastgele-kadro` - Rastgele 11 kurar\n"
+            "• `!zar` / `!yazıtura` - Şans oyunları"
+        ),
+        inline=False
+    )
+    
+    embed.add_field(
+        name="👤 2. Üye & Profil",
+        value=(
+            "• `!seviye` - Mesaj XP ve seviyeni gösterir\n"
+            "• `!ses-seviye` - Ses kanalı aktiflik puanını gösterir\n"
+            "• `!profil` / `!kullanıcı-bilgi` - Kullanıcı bilgilerini gösterir\n"
+            "• `!sunucu-bilgi` - Sunucu bilgilerini gösterir\n"
+            "• `!sayaç` - 100 üye hedef ilerlemesini gösterir\n"
+            "• `!afk <sebep>` - Uzakta moduna geçiş yapar\n"
+            "• `!öneri <mesaj>` - Sunucuya öneri gönderir"
+        ),
+        inline=False
+    )
 
-@bot.command(name="sil")
-@commands.has_permissions(manage_messages=True)
-async def sil(ctx, miktar: int = 5):
-    await ctx.channel.purge(limit=miktar + 1)
-    await ctx.send(f"🧹 {miktar} mesaj silindi!", delete_after=5)
+    embed.add_field(
+        name="🚪 3. Ses Kanalı & Odalar",
+        value=(
+            "• `!git <kanal adı>` - Oda boşsa gider, doluysa ✅ onayı ister\n"
+            "• `!oda-kapat` - Kendi özel ses odanı kilitler\n"
+            "• `!oda-aç` - Kilitli özel ses odanı açar\n"
+            "• *Not: '➕ Oda Oluştur' veya '➕ Among Us Odası'na girerek özel oda açabilirsin.*"
+        ),
+        inline=False
+    )
+
+    embed.add_field(
+        name="🛠️ 4. Yönetim & Yetkili Komutları",
+        value=(
+            "• `!kurulum` - İstatistik sayaç kanallarını kurar\n"
+            "• `!autorol-ayarla <rol>` - Yeni gelenlere otomatik rol verir\n"
+            "• `!çekiliş <saniye> <ödül>` - Ödüllü çekiliş başlatır\n"
+            "• `!rol-mesaj <@rol> <mesaj>` - Roldeki herkese özelden mesaj atar\n"
+            "• `!uyarı` / `!uyarılar` / `!uyarı-sil` - Üye uyarı sistemi\n"
+            "• `!yavaşmod <saniye>` - Kanalı yavaş moda alır\n"
+            "• `!kilit` / `!aç` - Kanalı mesajlara kapatır / açar\n"
+            "• `!kanal-aç <isim>` - Yeni yazı kanalı açar\n"
+            "• `!sil <sayı>` - Toplu mesaj siler\n"
+            "• `!kick` / `!ban` - Üye atma ve yasaklama"
+        ),
+        inline=False
+    )
+
+    embed.set_footer(text="Gelişmiş Discord Botu • Tüm sistemler aktif ve sorunsuz çalışıyor!")
+    await ctx.send(embed=embed)
 
 keep_alive()
 bot.run(os.environ['DISCORD_TOKEN'])
