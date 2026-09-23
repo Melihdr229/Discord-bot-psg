@@ -21,6 +21,7 @@ kilitli_odalilar = set()
 aktif_tahminler = {}  
 afk_kullanicilar = {}  
 uyari_veritabani = {}  
+gecici_odalar = set()  # Açılan özel ve Among Us odalarını takip etmek için
 
 OTO_CEVAPLAR = {
     "sa": "as",
@@ -204,7 +205,7 @@ async def on_member_update(before, after):
             embed = discord.Embed(title="🏷️ Rol Güncellendi", description=desc, color=discord.Color.purple())
             await log_kanal.send(embed=embed)
 
-# --- 3. SES KANALI, ÖZEL ODA VE AMONG US SİSTEMİ ---
+# --- 3. SES KANALI, ÖZEL ODA VE ANINDA TEMİZLİK SİSTEMİ ---
 @bot.event
 async def on_voice_state_update(member, before, after):
     if member.bot:
@@ -230,25 +231,25 @@ async def on_voice_state_update(member, before, after):
         elif before.channel != after.channel and before.channel is not None and after.channel is not None:
             await log_kanal.send(embed=discord.Embed(title="🔀 Ses Kanalı Değiştirdi", description=f"{member.mention} kullanıcısı **{before.channel.name}** kanalından **{after.channel.name}** kanalına geçiş yaptı.", color=discord.Color.gold()))
 
+    # Boşalan Geçici Odaları Temizleme Kontrolü
+    if before.channel and before.channel.id in gecicı_odalar:
+        if len(before.channel.members) == 0:
+            gecicı_odalar.discard(before.channel.id)
+            if before.channel.id in kilitli_odalilar:
+                kilitli_odalilar.remove(before.channel.id)
+            try:
+                await before.channel.delete()
+            except:
+                pass
+
     # Normal Özel Oda Oluşturma
     if after.channel and after.channel.name == "➕ Oda Oluştur":
         guild = member.guild
         category = after.channel.category
         oda_adi = f"🔊 | {member.name}'in Odası"
         yeni_kanal = await guild.create_voice_channel(oda_adi, category=category)
+        gecicı_odalar.add(yeni_kanal.id)
         await member.move_to(yeni_kanal)
-        
-        def check(b, a):
-            return len(yeni_kanal.members) == 0
-        
-        try:
-            await bot.wait_for('voice_state_update', check=check, timeout=86400)
-            if len(yeni_kanal.members) == 0:
-                if yeni_kanal.id in kilitli_odalilar:
-                    kilitli_odalilar.remove(yeni_kanal.id)
-                await yeni_kanal.delete()
-        except:
-            pass
 
     # Among Us Odası Oluşturma (12 Kişilik)
     if after.channel and after.channel.name == "➕ Among Us Odası":
@@ -256,17 +257,8 @@ async def on_voice_state_update(member, before, after):
         category = after.channel.category
         oda_adi = f"🚀 | {member.name}'in Among Us Odası"
         yeni_kanal = await guild.create_voice_channel(oda_adi, category=category, user_limit=12)
+        gecicı_odalar.add(yeni_kanal.id)
         await member.move_to(yeni_kanal)
-        
-        def check_among(b, a):
-            return len(yeni_kanal.members) == 0
-        
-        try:
-            await bot.wait_for('voice_state_update', check=check_among, timeout=86400)
-            if len(yeni_kanal.members) == 0:
-                await yeni_kanal.delete()
-        except:
-            pass
 
     import time
     simdiki_zaman = time.time()
