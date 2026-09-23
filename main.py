@@ -33,12 +33,12 @@ YASAKLI_KELIMELER = [
 ]
 
 GUNCEL_SORULAR = [
-    "🧠 **Günün Bilgi Sorusu:** Türkiye'nin başkenti Ankara hangi yılda resmi başkent ilan edilmiştir? (Cevap için tahminleri alalım!)",
-    "🧠 **Günün Bilgi Sorusu:** Dünyanın en uzun nehri hangisidir?",
-    "🧠 **Günün Bilgi Sorusu:** Osmanlı İmparatorluğu'nun kurucusu Osman Bey'in babası kimdir?",
-    "🧠 **Günün Bilgi Sorusu:** Ay'a ilk ayak basan astronot kimdir ve hangi yıl gerçekleşmiştir?",
-    "🧠 **Günün Bilgi Sorusu:** Kilometre cinsinden Güneş'e en yakın olan gezegen hangisidir?",
-    "🧠 **Günün Bilgi Sorusu:** İstiklal Marşı'mızın şairi Mehmet Akif Ersoy'un şiirlerini topladığı kitabının adı nedir?"
+    "🧠 **Günün Bilgi Sorusu:** Hangi futbol takımı, Şampiyonlar Ligi'ni en çok kazanan kulüptür?",
+    "🧠 **Günün Bilgi Sorusu:** Türkiye'nin yüz ölçümü bakımından en büyük şehri hangisidir?",
+    "🧠 **Günün Bilgi Sorusu:** Bilgisayar biliminin babası olarak bilinen ve yapay zekanın temellerini atan ünlü İngiliz matematikçi kimdir?",
+    "🧠 **Günün Bilgi Sorusu:** 'Grand Line' hangi ünlü anime serisinde yer alan okyanus yoludur?",
+    "🧠 **Günün Bilgi Sorusu:** Güneş sistemindeki en büyük gezegen hangisidir?",
+    "🧠 **Günün Bilgi Sorusu:** İstanbul hangi yıl feth edilmiştir?"
 ]
 
 mesaj_sayaci = 0
@@ -69,12 +69,11 @@ async def on_member_join(member):
         embed.set_thumbnail(url=member.avatar.url if member.avatar else member.default_avatar.url)
         await channel.send(embed=embed)
 
-# --- 2. MODERATÖR LOG: SİLİNEN MESAJLAR ---
+# --- 2. GELİŞMİŞ MODERATÖR LOG SİSTEMİ ---
 @bot.event
 async def on_message_delete(message):
     if message.author.bot or not message.guild:
         return
-    
     log_kanal = discord.utils.get(message.guild.text_channels, name="mod-log")
     if log_kanal:
         embed = discord.Embed(
@@ -85,7 +84,44 @@ async def on_message_delete(message):
         embed.set_footer(text=f"Kullanıcı ID: {message.author.id}")
         await log_kanal.send(embed=embed)
 
-# --- 3. SES KANALI VE LOG TAKİBİ ---
+@bot.event
+async def on_member_remove(member):
+    # Kick veya ayrılma kontrolü
+    if not member.guild:
+        return
+    log_kanal = discord.utils.get(member.guild.text_channels, name="mod-log")
+    if log_kanal:
+        try:
+            async for entry in member.guild.audit_logs(limit=1, action=discord.AuditLogAction.kick):
+                if entry.target.id == member.id:
+                    embed = discord.Embed(
+                        title="👢 Üye Kicklendi (Atıldı)",
+                        description=f"**Atılan:** {member.mention} ({member.name})\n**Atan Yetkili:** {entry.user.mention}\n**Sebep:** {entry.reason or 'Belirtilmedi'}",
+                        color=discord.Color.orange()
+                    )
+                    await log_kanal.send(embed=embed)
+                    return
+        except:
+            pass
+
+@bot.event
+async def on_member_ban(guild, user):
+    log_kanal = discord.utils.get(guild.text_channels, name="mod-log")
+    if log_kanal:
+        try:
+            async for entry in guild.audit_logs(limit=1, action=discord.AuditLogAction.ban):
+                if entry.target.id == user.id:
+                    embed = discord.Embed(
+                        title="🔨 Üye Banlandı (Yasaklandı)",
+                        description=f"**Yasaklanan:** {user.mention} ({user.name})\n**Yasaklayan Yetkili:** {entry.user.mention}\n**Sebep:** {entry.reason or 'Belirtilmedi'}",
+                        color=discord.Color.dark_red()
+                    )
+                    await log_kanal.send(embed=embed)
+                    return
+        except:
+            pass
+
+# --- 3. SES KANALI VE BAĞLANTI KESİLME LOGLARI ---
 @bot.event
 async def on_voice_state_update(member, before, after):
     if member.bot:
@@ -94,6 +130,21 @@ async def on_voice_state_update(member, before, after):
     log_kanal = discord.utils.get(member.guild.text_channels, name="mod-log")
 
     if log_kanal:
+        # Biri birinin sesten bağlantısını kestiyse (Örn: Oda yetkilisi veya admin odadan attıysa)
+        if before.channel is not None and after.channel is None:
+            try:
+                async for entry in member.guild.audit_logs(limit=1, action=discord.AuditLogAction.member_move):
+                    if entry.target.id == member.id and entry.extra and entry.extra.id != member.id:
+                        embed = discord.Embed(
+                            title="🔌 Ses Bağlantısı Kesildi / Taşındı",
+                            description=f"**Kullanıcı:** {member.mention}\n**İşlemi Yapan:** {entry.user.mention}\n**Eski Kanal:** {before.channel.name}",
+                            color=discord.Color.purple()
+                        )
+                        await log_kanal.send(embed=embed)
+                        break
+            except:
+                pass
+
         if before.channel is None and after.channel is not None:
             await log_kanal.send(embed=discord.Embed(title="🔊 Ses Kanalına Girdi", description=f"{member.mention} kullanıcısı **{after.channel.name}** kanalına katıldı.", color=discord.Color.blue()))
         elif before.channel is not None and after.channel is None:
@@ -165,7 +216,7 @@ async def on_message(message):
             tahmin = int(message.content)
             gizli_sayi = aktif_tahminler[message.channel.id]
             if tahmin == gizli_sayi:
-                await message.channel.send(f"🎉 Tebrikler {message.author.mention}, doğru tahmin ettin! Sayı **{gizli_sayi}** idi. 🏆")
+                await message.channel.send(f"🎉 Helal olsun {message.author.mention}, doğru tahmin ettin! Sayı **{gizli_sayi}** idi. 🏆")
                 del aktif_tahminler[message.channel.id]
             elif tahmin < gizli_sayi:
                 await message.add_reaction("⬆️")
@@ -429,6 +480,10 @@ async def kilit(ctx):
 async def ac(ctx):
     await ctx.channel.set_permissions(ctx.guild.default_role, send_messages=True)
     await ctx.send("🔓 Kanal açıldı.")
+
+@bot.command(name="tahmin")
+async def tahmin(ctx.channel.id in aktif_tahminler) if False else def_tahmin(ctx):
+    pass
 
 @bot.command(name="tahmin")
 async def tahmin(ctx):
