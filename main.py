@@ -52,24 +52,24 @@ ASMACA_KATEGORILERI = {
     "matematik": ["türev", "integral", "geometri", "matris", "fonksiyon", "trigonometri", "logaritma", "olasılık", "parabol"]
 }
 
-# Kim Milyoner Olmak İster Genişletilmiş Kategori ve Soruları
+# Kim Milyoner Olmak İster Güncellenmiş ve Yeni Kategorili Soru Havuzu
 MILYONER_VERITABANI = {
     "lol": [
         {"soru": "League of Legends oyununda 'Baron Nashor' katledildiğinde takıma hangi kalıcı güçlendirme verilir?", "secenekler": ["A) Elixir of Iron", "B) Hand of Baron (Nashor Gücü)", "C) Aspect of the Dragon", "D) Crest of Cinders"], "cevap": "b"},
         {"soru": "Hangisi League of Legends evrelerinde bir orman (jungle) kampı değildir?", "secenekler": ["A) Kurtlar (Murk Wolves)", "B) Kayacıllar (Krugs)", "C) Ejderha (Dragon)", "D) Ejderha Yavrusu Yuvası"], "cevap": "d"},
         {"soru": "Blitzcrank karakterinin Q yeteneğinin adı nedir?", "secenekler": ["A) Rocket Grab (Roket El)", "B) Power Fist", "C) Static Field", "D) Overdrive"], "cevap": "a"},
-        {"soru": "League of Legends'da dereceli (ranked) sistemde en yüksek liglerin başında gelen ve Ustalık (Master) ile Şampiyonluk (Challenger) arasında yer alan lig hangisidir?", "secenekler": ["A) Elmas", "B) Üstadlık (Grandmaster)", "C) Zümrüt", "D) Demir"], "cevap": "b"},
-        {"soru": "Summoner's Rift haritasında her iki takımın üssü arasında orta koridorda (Mid) karşılaşan ilk minyon dalgası kaçıncı saniyede doğar?", "secenekler": ["A) 0:00", "B) 1:05", "C) 1:30", "D) 2:00"], "cevap": "b"}
+        {"soru": "League of Legends'da dereceli sistemde Ustalık ile Şampiyonluk arasında yer alan lig hangisidir?", "secenekler": ["A) Elmas", "B) Üstadlık (Grandmaster)", "C) Zümrüt", "D) Demir"], "cevap": "b"},
+        {"soru": "Summoner's Rift haritasında orta koridorda ilk minyon dalgası kaçıncı saniyede doğar?", "secenekler": ["A) 0:00", "B) 1:05", "C) 1:30", "D) 2:00"], "cevap": "c"}
     ],
     "valorant": [
         {"soru": "Valorant oyununda Spike'ı yerleştirmek (plant) normal şartlarda kaç saniye sürer?", "secenekler": ["A) 2 saniye", "B) 4 saniye", "C) 6 saniye", "D) 8 saniye"], "cevap": "b"},
         {"soru": "Hangisi Valorant'ın 'Öncü (Initiator)' ajanlarından biri değildir?", "secenekler": ["A) Sova", "B) Skye", "C) Jett", "D) Fade"], "cevap": "c"},
         {"soru": "Valorant'ta en yüksek rekabetçi rütbe kademesi aşağıdakilerden hangisidir?", "secenekler": ["A) Yücelik", "B) Ölümsüzlük", "C) Radiant (Radyant)", "D) Elmas"], "cevap": "c"},
-        {"soru": "Valorant oyununda silah satın alma ekranında takım arkadaşlarından para istemek için kullanılan tuş kombinasyonu veya terimin adı nedir?", "secenekler": ["A) Request (İstek)", "B) Economy", "C) Drop", "D) Buy"], "cevap": "a"},
+        {"soru": "Valorant oyununda silah satın alma ekranında takım arkadaşlarından para istemek için kullanılan terim nedir?", "secenekler": ["A) Request (İstek)", "B) Economy", "C) Drop", "D) Buy"], "cevap": "a"},
         {"soru": "Ajan Brimstone hangi sınıfa (Role) aittir?", "secenekler": ["A) Düellocu", "B) Kontrol Uzmanı (Controller)", "C) Öncü", "D) Gözcü"], "cevap": "b"}
     ],
     "tarih": [
-        {"soru": "Osmanlı İmparatorluğu'nun kuruluş yılı resmi olarak tarihçiler tarafından genellikle hangi yıl kabul edilir?", "secenekler": ["A) 1299", "B) 1453", "C) 1071", "D) 1923"], "cevap": "a"},
+        {"soru": "Osmanlı İmparatorluğu'nun kuruluş yılı resmi olarak genellikle hangi yıl kabul edilir?", "secenekler": ["A) 1299", "B) 1453", "C) 1071", "D) 1923"], "cevap": "a"},
         {"soru": "Mustafa Kemal Atatürk'e 'Gazi' unvanı hangi savaştan sonra verilmiştir?", "secenekler": ["A) Çanakkale Savaşı", "B) Sakarya Meydan Muharebesi", "C) Büyük Taarruz", "D) I. İnönü Savaşı"], "cevap": "b"},
         {"soru": "İstanbul kaç yılında Fatih Sultan Mehmet tarafından fethedilmiştir?", "secenekler": ["A) 1299", "B) 1453", "C) 1517", "D) 1923"], "cevap": "b"},
         {"soru": "Türk tarihinde 'Yurt Açan Savaş' olarak bilinen ve Anadolu'nun kapılarını Türklere açan savaş hangisidir?", "secenekler": ["A) Miryokefalon Savaşı", "B) Malazgirt Savaşı", "C) Dandanakan Savaşı", "D) Pasinler Savaşı"], "cevap": "b"},
@@ -83,11 +83,30 @@ MILYONER_VERITABANI = {
         {"soru": "Dünyanın en derin okyanus çukuru olan 'Mariana Çukuru' hangi okyanusta yer alır?", "secenekler": ["A) Atlas Okyanusu", "B) Hint Okyanusu", "C) Pasifik (Büyük) Okyanus", "D) Arktik Okyanusu"], "cevap": "c"}
     ],
     "müzik": [
-        {"soru": "Müzik notalarında 'sol anahtarı' portenin (dizek) kaçıncı çizgisinden başlar?", "secenekler": ["A) 1. Çizgi", "B) 2. Çizgi", "C) 3. Çizgi", "D) 4. Çizgi"], "cevap": "b"},
+        {"soru": "Müzik notalarında 'sol anahtarı' portenin kaçıncı çizgisinden başlar?", "secenekler": ["A) 1. Çizgi", "B) 2. Çizgi", "C) 3. Çizgi", "D) 4. Çizgi"], "cevap": "b"},
         {"soru": "Türkiye'de 'Dönence', 'Aldırma Gönül' gibi unutulmaz eserlere imza atmış efsanevi Anadolu Rock grubu hangisidir?", "secenekler": ["A) Duman", "B) Moğollar", "C) MFÖ", "D) Athena"], "cevap": "b"},
         {"soru": "Klasik batı müziğinde 'en yavaş' tempo terimi aşağıdakilerden hangisidir?", "secenekler": ["A) Allegro", "B) Andante", "C) Largo", "D) Presto"], "cevap": "c"},
-        {"soru": "Aşağıdaki enstrümanlardan hangisi yaylı çalgılar grubuna girer?", "secenekler": ["A) Flüt", "B) Viyolonsel (Çello)", "C) Klarnet", "D) trompet"], "cevap": "b"},
+        {"soru": "Aşağıdaki enstrümanlardan hangisi yaylı çalgılar grubuna girer?", "secenekler": ["A) Flüt", "B) Viyolonsel (Çello)", "C) Klarnet", "D) Trompet"], "cevap": "b"},
         {"soru": "Dünyaca ünlü 'Bohemian Rhapsody' şarkısı hangi efsanevi müzik grubuna aittir?", "secenekler": ["A) The Beatles", "B) Pink Floyd", "C) Queen", "D) Led Zeppelin"], "cevap": "c"}
+    ],
+    # YENİ EKLENEN KATEGORİLER VE SORULAR:
+    "futbol": [
+        {"soru": "Hangi futbol kulübü UEFA Şampiyonlar Ligi'ni tarihte en çok kazanan takımdır?", "secenekler": ["A) AC Milan", "B) Barcelona", "C) Real Madrid", "D) Bayern Munich"], "cevap": "c"},
+        {"soru": "Dünyada 'Kral' (El Rey) lakabıyla tanınan ve 3 kez Dünya Kupası kazanan efsanevi Brezilyalı futbolcu kimdir?", "secenekler": ["A) Maradona", "B) Pele", "C) Ronaldinho", "D) Ronaldo Nazario"], "cevap": "b"},
+        {"soru": "Türkiye A Milli Futbol Takımı, FIFA Dünya Kupası tarihindeki en iyi derecesi olan üçüncülüğü hangi yılda elde etmiştir?", "secenekler": ["A) 1996", "B) 2002", "C) 2008", "D) 2020"], "cevap": "b"},
+        {"soru": "Bir futbol maçında kaleci dışında bir oyuncunun elle müdahale etmesi sonucu hakemin verdiği ceza atışı hangisidir?", "secenekler": ["A) Taç", "B) Korner", "C) Penaltı", "D) Endirekt Vuruş"], "cevap": "c"}
+    ],
+    "genel": [
+        {"soru": "Periyodik tablonun ilk elementi ve evrende en bol bulunan kimyasal element hangisidir?", "secenekler": ["A) Helyum", "B) Oksijen", "C) Hidrojen", "D) Karbon"], "cevap": "c"},
+        {"soru": "Mona Lisa tablosunu çizen dünyaca ünlü İtalyan sanatçı ve deha kimdir?", "secenekler": ["A) Donatello", "B) Leonardo da Vinci", "C) Michelangelo", "D) Raphael"], "cevap": "b"},
+        {"soru": "Güneş sistemindeki en büyük gezegen aşağıdakilerden hangisidir?", "secenekler": ["A) Satürn", "B) Jüpiter", "C) Neptün", "D) Mars"], "cevap": "b"},
+        {"soru": "Nobel Ödülleri hangi ülkede verilmektedir?", "secenekler": ["A) Almanya", "B) İsviçre", "C) İsveç", "D) Fransa"], "cevap": "c"}
+    ],
+    "teknoloji": [
+        {"soru": "Yapay zeka alanında sıkça kullanılan 'ChatGPT' dil modelini geliştiren şirketin adı nedir?", "secenekler": ["A) Google", "B) Microsoft", "C) OpenAI", "D) Apple"], "cevap": "c"},
+        {"soru": "Bilgisayarlarda veri depolamak için kullanılan ve elektrik kesildiğinde içerisindeki veriler silinmeyen kalıcı bellek birimi hangisidir?", "secenekler": ["A) RAM", "B) Cache", "C) SSD / Sabit Disk", "D) Register"], "cevap": "c"},
+        {"soru": "İnternetin temelini oluşturan ve 'Ağların Ağı' anlamına gelen küresel sistemin genel kısaltması nedir?", "secenekler": ["A) WWW", "B) HTTP", "C) TCP", "D) LAN"], "cevap": "a"},
+        {"soru": "Linux işletim sisteminin maskotu olan sevimli penguenin adı nedir?", "secenekler": ["A) Pingu", "B) Tux", "C) Linuxy", "D) Waddle"], "cevap": "b"}
     ]
 }
 
@@ -535,7 +554,7 @@ async def yardim(ctx):
         description="Sunucuyu yönetmek ve eğlenmek için kullanabileceğin tüm komutlar:",
         color=discord.Color.green()
     )
-    embed.add_field(name="!milyoner [lol/valorant/tarih/coğrafya/müzik]", value="Kim Milyoner Olmak İster yarışması başlatır.", inline=False)
+    embed.add_field(name="!milyoner [lol/valorant/tarih/coğrafya/müzik/futbol/genel/teknoloji]", value="Kim Milyoner Olmak İster yarışması başlatır.", inline=False)
     embed.add_field(name="!adam-asmaca [lol/valorant/minecraft/tarih/matematik]", value="Adam Asmaca oyunu başlatır.", inline=False)
     embed.add_field(name="!kurulum", value="Sunucu istatistik kanallarını otomatik kurar (Yönetici).", inline=False)
     embed.add_field(name="!yardim", value="Komutları listeler.", inline=False)
