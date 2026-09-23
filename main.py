@@ -35,13 +35,18 @@ YASAKLI_KELIMELER = [
     "küfür1", "küfür2"
 ]
 
-GUNCEL_SORULAR = [
-    {"soru": "🧠 **Günün Bilgi Sorusu:** Hangi futbol takımı, Şampiyonlar Ligi'ni en çok kazanan kulüptür?", "cevap": "real madrid"},
-    {"soru": "🧠 **Günün Bilgi Sorusu:** Türkiye'nin yüz ölçümü bakımından en büyük şehri hangisidir?", "cevap": "konya"},
-    {"soru": "🧠 **Günün Bilgi Sorusu:** Bilgisayar biliminin babası olarak bilinen ve yapay zekanın temellerini atan ünlü İngiliz matematikçi kimdir?", "cevap": "alan turing"},
-    {"soru": "🧠 **Günün Bilgi Sorusu:** 'Grand Line' hangi ünlü anime serisinde yer alan okyanus yoludur?", "cevap": "one piece"},
-    {"soru": "🧠 **Günün Bilgi Sorusu:** Güneş sistemindeki en büyük gezegen hangisidir?", "cevap": "jüpiter"},
-    {"soru": "🧠 **Günün Bilgi Sorusu:** İstanbul hangi yıl feth edilmiştir?", "cevap": "1453"}
+# 3 Saatte Bir Sorulacak Zenginleştirilmiş Soru Havuzu
+SAATLIK_BILGI_SORULARI = [
+    {"soru": "Hangi futbol takımı, Şampiyonlar Ligi'ni en çok kazanan kulüptür?", "cevap": "real madrid"},
+    {"soru": "Türkiye'nin yüz ölçümü bakımından en büyük şehri hangisidir?", "cevap": "konya"},
+    {"soru": "Bilgisayar biliminin babası olarak bilinen ve yapay zekanın temellerini atan ünlü İngiliz matematikçi kimdir?", "cevap": "alan turing"},
+    {"soru": "'Grand Line' hangi ünlü anime serisinde yer alan okyanus yoludur?", "cevap": "one piece"},
+    {"soru": "Güneş sistemindeki en büyük gezegen hangisidir?", "cevap": "jüpiter"},
+    {"soru": "İstanbul hangi yıl fethedilmiştir?", "cevap": "1453"},
+    {"soru": "Periyodik tablonun ilk elementi ve evrende en bol bulunan kimyasal element hangisidir?", "cevap": "hidrojen"},
+    {"soru": "Mona Lisa tablosunu çizen dünyaca ünlü İtalyan sanatçı kimdir?", "cevap": "leonardo da vinci"},
+    {"soru": "Türkiye Cumhuriyeti hangi yıl kurulmuştur?", "cevap": "1923"},
+    {"soru": "İnsan vücudundaki en büyük organ hangisidir?", "cevap": "deri"}
 ]
 
 ASMACA_KATEGORILERI = {
@@ -111,13 +116,13 @@ MILYONER_VERITABANI = {
     ]
 }
 
-ODULLER = ["1.000 TL", "10.000 TL", "50.000 TL", "250.000 TL", "1.000.000 TL"]
-mesaj_sayaci = 0
+ODULLer = ["1.000 TL", "10.000 TL", "50.000 TL", "250.000 TL", "1.000.000 TL"]
 
 @bot.event
 async def on_ready():
     print(f"Giriş yapıldı! Bot aktif: {bot.user}")
     istatistik_guncelle.start()
+    saatlik_soru_gonderici.start()
 
 # --- 0. OTOMATİK İSTATİSTİK GÜNCELLEYİCİ LOOP ---
 @tasks.loop(minutes=5)
@@ -141,6 +146,29 @@ async def istatistik_guncelle():
                     await channel.edit(name=f"🤖 Bot Sayısı: {bot_sayisi}")
                 except:
                     pass
+
+# --- 0.1. HER 3 SAATTE BİR BİLGİ SORUSU GÖNDERİCİ ---
+@tasks.loop(hours=3)
+async def saatlik_soru_gonderici():
+    secilen = random.choice(SAATLIK_BILGI_SORULARI)
+    for guild in bot.guilds:
+        hedef_kanal = discord.utils.get(guild.text_channels, name="sohbet") or discord.utils.get(guild.text_channels, name="genel")
+        if not hedef_kanal:
+            for ch in guild.text_channels:
+                if ch.permissions_for(guild.me).send_messages:
+                    hedef_kanal = ch
+                    break
+        
+        if hedef_kanal:
+            aktif_sorular[hedef_kanal.id] = secilen["cevap"]
+            try:
+                await hedef_kanal.send(f"⏰ **3 Saatte Bir Gelen Bilgi Zamanı!**\n🧠 {secilen['soru']}\n*(Doğru cevabı yazarak 'Çok akıllısın maşallah!' övgüsünü kazan!)*")
+            except:
+                pass
+
+@saatlik_soru_gonderici.before_loop
+async def before_saatlik_soru():
+    await bot.wait_until_ready()
 
 # --- 1. OTOMATİK ROL VE HOŞ GELDİN MESAJI ---
 @bot.event
@@ -388,7 +416,7 @@ async def on_message(message):
             else:
                 sonraki_soru = oyun["sorular"][oyun["tur"]]
                 secenekler_metni = "\n".join(sonraki_soru["secenekler"])
-                odul_miktari = ODULLER[oyun["tur"]]
+                odul_miktari = ODULLer[oyun["tur"]]
                 embed = discord.Embed(
                     title=f"💰 Milyoner Yarışması | Soru {oyun['tur'] + 1} / 5",
                     description=f"✅ **Tebrikler, doğru bildin!** Sıradaki Ödül: **{odul_miktari}**\n\n**Soru:** {sonraki_soru['soru']}\n\n{secenekler_metni}\n\n*Cevap vermek için şıkkın harfini yaz (A, B, C, D)*",
@@ -424,7 +452,7 @@ async def on_message(message):
                 gizli_goruntu = " ".join([h if h in oyun['tahminler'] or h == " " else "_" for h in oyun['kelime']])
                 await message.channel.send(f"❌ Yanlış harf! Kalan Can: **{oyun['can']}** ❤️\nDurum: `{gizli_goruntu}`")
 
-    # Günün Sorusu Kontrolü
+    # 3 Saatlik Bilgi Sorusu Cevap Kontrolü
     if message.channel.id in aktif_sorular:
         dogru_cevap = aktif_sorular[message.channel.id]
         if dogru_cevap in mesaj_metni:
@@ -473,13 +501,6 @@ async def on_message(message):
     user_id = message.author.id
     user_xp[user_id] = user_xp.get(user_id, 0) + random.randint(5, 15)
 
-    mesaj_sayaci += 1
-    if mesaj_sayaci >= 15:
-        mesaj_sayaci = 0
-        secilen = random.choice(GUNCEL_SORULAR)
-        aktif_sorular[message.channel.id] = secilen["cevap"]
-        await message.channel.send(secilen["soru"])
-
     await bot.process_commands(message)
 
 # --- 5. OYUN KOMUTLARI ---
@@ -511,7 +532,7 @@ async def milyoner(ctx, kategori: str = None):
     
     embed = discord.Embed(
         title=f"💰 Kim Milyoner Olmak İster? ({secilen_kat.upper()})",
-        description=f"🎯 Yarışmacı: {ctx.author.mention}\n1. Soru Ödülü: **{ODULLER[0]}**\n\n**Soru:** {ilk_soru['soru']}\n\n{secenekler_metni}\n\n*Cevap vermek için doğrudan şıkkın harfini yaz (A, B, C, D)*",
+        description=f"🎯 Yarışmacı: {ctx.author.mention}\n1. Soru Ödülü: **{ODULLer[0]}**\n\n**Soru:** {ilk_soru['soru']}\n\n{secenekler_metni}\n\n*Cevap vermek için doğrudan şıkkın harfini yaz (A, B, C, D)*",
         color=discord.Color.gold()
     )
     await ctx.send(embed=embed)
@@ -635,7 +656,7 @@ async def oneri(ctx, *, metin: str):
     await gonderilen.add_reaction("👍")
     await gonderilen.add_reaction("👎")
 
-# --- 7. SES ODASI KONTROLÜ (DÜZELTİLMİŞ !GİT KOMUTU) ---
+# --- 7. SES ODASI KONTROLÜ ---
 @bot.command(name="git")
 async def git(ctx, member: discord.Member):
     if not ctx.author.voice:
@@ -864,7 +885,7 @@ async def yardim(ctx):
         inline=False
     )
 
-    embed.set_footer(text="Gelişmiş Discord Botu • Tüm sistemler aktif ve sorunsuz!")
+    embed.set_footer(text="Gelişmiş Discord Botu • Her 3 saatte bir otomatik soru aktif!")
     await ctx.send(embed=embed)
 
 keep_alive()
