@@ -3,6 +3,7 @@ import random
 import asyncio
 import discord
 from discord.ext import commands
+import yt_dlp
 from keep_alive import keep_alive
 
 intents = discord.Intents.default()
@@ -269,14 +270,15 @@ async def on_voice_state_update(member, before, after):
                 ses_xp[member.id] = ses_xp.get(member.id, 0) + kazanilan_ses_xp
             del ses_takip[member.id]
 
-# --- 4. MÜZİK KOMUTLARI (DOĞRUDAN SES AKIŞI) ---
+# --- 4. YOUTUBE / ŞARKI ADI ARAMALI MÜZİK SİSTEMİ ---
+YDL_OPTIONS = {'format': 'bestaudio/best', 'noplaylist': 'True'}
 FFMPEG_OPTIONS = {
     'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
     'options': '-vn'
 }
 
 @bot.command(name="çal", aliases=["oyat", "oynat"])
-async def cal(ctx, *, url: str):
+async def cal(ctx, *, arama: str):
     if not ctx.author.voice:
         await ctx.send("❌ Önce bir ses kanalına girmelisin!")
         return
@@ -288,16 +290,25 @@ async def cal(ctx, *, url: str):
         await ctx.voice_client.move_to(kanal)
 
     voice_client = ctx.voice_client
-
     if voice_client.is_playing():
         voice_client.stop()
 
+    await ctx.send(f"🔍 Aratılıyor ve oynatılıyor: `{arama}`...")
+
     try:
+        with yt_dlp.YoutubeDL(YDL_OPTIONS) as ydl:
+            # Eğer doğrudan link değil de isim yazıldıysa ytsearch ile aratır
+            info = ydl.extract_info(f"ytsearch:{arama}", download=False)
+            if 'entries' in info:
+                info = info['entries'][0]
+            url = info['url']
+            baslik = info.get('title', 'Bilinmeyen Şarkı')
+
         source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(url, **FFMPEG_OPTIONS))
         voice_client.play(source, after=lambda e: print(f'Müzik bitti: {e}') if e else None)
-        await ctx.send(f"🎶 Oynatılıyor: `{url}`")
+        await ctx.send(f"🎶 Çalınıyor: **{baslik}**")
     except Exception as e:
-        await ctx.send(f"⚠️ Müzik çalınamadı. Lütfen geçerli bir ses akış bağlantısı girdiğinden emin ol. Hata: `{e}`")
+        await ctx.send(f"⚠️ Şarkı oynatılırken bir hata oluştu: `{e}`")
 
 @bot.command(name="duraklat")
 async def duraklat(ctx):
@@ -398,7 +409,7 @@ async def yardim(ctx):
         color=discord.Color.green()
     )
     embed.add_field(name="!yardim", value="Komutları listeler.", inline=False)
-    embed.add_field(name="!çal <ses URL>", value="Ses kanalına gelip akış oynatır.", inline=False)
+    embed.add_field(name="!çal <şarkı adı>", value="Şarkı adını yazar ve otomatik çalar.", inline=False)
     embed.add_field(name="!duraklat / !devam", value="Müziği durdurur veya devam ettirir.", inline=False)
     embed.add_field(name="!atla / !ayrıl", value="Müziği atlar veya sesten çıkar.", inline=False)
     embed.add_field(name="!git <ses kanalı>", value="Boşsa direkt gider, doluysa odadakilerin ✅ onayından sonra seni içeri alır.", inline=False)
@@ -461,7 +472,7 @@ async def git(ctx, *, kanal_adi: str):
     try:
         reaction, user = await bot.wait_for('reaction_add', timeout=30.0, check=check)
         await hedef_uye.move_to(hedef_kanal)
-        await ctx.send(f"✅ **{user.name}** onay verdi ve {hedef_uye.mention}, **{hedef_kanal.name}** kanalına alındı!")
+        await ctx.send(f"✅ **{user.name}** onay verdi ve {hedef_newUser.mention if 'hedef_newUser' in locals() else hedef_uye.mention}, **{hedef_kanal.name}** kanalına alındı!")
     except asyncio.TimeoutError:
         await ctx.send(f"⏱️ Süre doldu, **{hedef_kanal.name}** odasından kimse onay vermedi.")
 
@@ -640,7 +651,7 @@ async def seviye(ctx, member: discord.Member = None):
     await ctx.send(embed=discord.Embed(title=f"⭐ {member.name} Seviye", description=f"XP: {xp} (Seviye: {xp // 100})", color=discord.Color.orange()))
 
 @bot.command(name="sunucu-bilgi")
-async def sunucu_bilgi(ctx):
+async def sunucu_bilgi(ctx: commands.Context):
     g = ctx.guild
     await ctx.send(embed=discord.Embed(title=f"📊 {g.name}", description=f"Sahip: {g.owner}\nÜye: {g.member_count}", color=discord.Color.purple()))
 
