@@ -269,14 +269,14 @@ async def on_voice_state_update(member, before, after):
                 ses_xp[member.id] = ses_xp.get(member.id, 0) + kazanilan_ses_xp
             del ses_takip[member.id]
 
-# --- 4. MÜZİK KOMUTLARI (YOUTUBE / SES AKIŞI) ---
+# --- 4. MÜZİK KOMUTLARI (DOĞRUDAN SES AKIŞI) ---
 FFMPEG_OPTIONS = {
     'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
     'options': '-vn'
 }
 
 @bot.command(name="çal", aliases=["oyat", "oynat"])
-async def cal(ctx, *, arama_veya_url: str):
+async def cal(ctx, *, url: str):
     if not ctx.author.voice:
         await ctx.send("❌ Önce bir ses kanalına girmelisin!")
         return
@@ -289,14 +289,15 @@ async def cal(ctx, *, arama_veya_url: str):
 
     voice_client = ctx.voice_client
 
-    # Doğrudan ses akışı (stream) bağlantısı veya arama simülasyonu
+    if voice_client.is_playing():
+        voice_client.stop()
+
     try:
-        # yt-dlp veya doğrudan ses kaynağı entegrasyonu
-        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(arama_veya_url, **FFMPEG_OPTIONS))
+        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(url, **FFMPEG_OPTIONS))
         voice_client.play(source, after=lambda e: print(f'Müzik bitti: {e}') if e else None)
-        await ctx.send(f"🎶 Müzik çalmaya başladı: `{arama_veya_url}`")
+        await ctx.send(f"🎶 Oynatılıyor: `{url}`")
     except Exception as e:
-        await ctx.send(f"⚠️ Müzik çalınırken bir hata oluştu (Geçerli bir ses/akış URL'si girdiğinden emin ol): `{e}`")
+        await ctx.send(f"⚠️ Müzik çalınamadı. Lütfen geçerli bir ses akış bağlantısı girdiğinden emin ol. Hata: `{e}`")
 
 @bot.command(name="duraklat")
 async def duraklat(ctx):
@@ -397,7 +398,7 @@ async def yardim(ctx):
         color=discord.Color.green()
     )
     embed.add_field(name="!yardim", value="Komutları listeler.", inline=False)
-    embed.add_field(name="!çal <ses URL>", value="Ses kanalına gelip müzik/akış oynatır.", inline=False)
+    embed.add_field(name="!çal <ses URL>", value="Ses kanalına gelip akış oynatır.", inline=False)
     embed.add_field(name="!duraklat / !devam", value="Müziği durdurur veya devam ettirir.", inline=False)
     embed.add_field(name="!atla / !ayrıl", value="Müziği atlar veya sesten çıkar.", inline=False)
     embed.add_field(name="!git <ses kanalı>", value="Boşsa direkt gider, doluysa odadakilerin ✅ onayından sonra seni içeri alır.", inline=False)
