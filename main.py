@@ -91,7 +91,6 @@ async def on_member_remove(member):
     if not log_kanal:
         return
 
-    # Kick kontrolü
     try:
         async for entry in member.guild.audit_logs(limit=1, action=discord.AuditLogAction.kick):
             if entry.target.id == member.id:
@@ -105,7 +104,6 @@ async def on_member_remove(member):
     except:
         pass
 
-    # Normal çıkış logu
     embed = discord.Embed(
         title="📤 Sunucudan Ayrıldı",
         description=f"**Üye:** {member.mention} ({member.name})",
@@ -174,7 +172,6 @@ async def on_member_update(before, after):
     if not log_kanal:
         return
 
-    # İsim Değişikliği Logu
     if before.nick != after.nick:
         embed = discord.Embed(
             title="✍️ Kullanıcı Adı (Nick) Değişti",
@@ -183,16 +180,26 @@ async def on_member_update(before, after):
         )
         await log_kanal.send(embed=embed)
 
-    # Rol Değişikliği Logu
     if before.roles != after.roles:
-        eklenen = [r.name for r in after.roles if r not in before.roles]
-        silinen = [r.name for r in before.roles if r not in after.roles]
+        eklenen = [r for r in after.roles if r not in before.roles]
+        silinen = [r for r in before.roles if r not in after.roles]
+        
         if eklenen or silinen:
-            desc = f"**Üye:** {after.mention}\n"
+            islem_yapan = "Bilinmiyor / Bot"
+            await asyncio.sleep(0.5)
+            try:
+                async for entry in before.guild.audit_logs(limit=1, action=discord.AuditLogAction.member_role_update):
+                    if entry.target.id == after.id:
+                        islem_yapan = entry.user.mention
+                        break
+            except:
+                pass
+
+            desc = f"**Üye:** {after.mention}\n**İşlemi Yapan Yetkili:** {islem_yapan}\n"
             if eklenen:
-                desc += f"➕ **Eklenen Rol(ler):** {', '.join(eklenen)}\n"
+                desc += f"➕ **Eklenen Rol(ler):** {', '.join([r.name for r in eklenen])}\n"
             if silinen:
-                desc += f"➖ **Alınan Rol(ler):** {', '.join(silinen)}\n"
+                desc += f"➖ **Alınan Rol(ler):** {', '.join([r.name for r in silinen])}\n"
             
             embed = discord.Embed(title="🏷️ Rol Güncellendi", description=desc, color=discord.Color.purple())
             await log_kanal.send(embed=embed)
