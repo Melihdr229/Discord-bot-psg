@@ -3,7 +3,6 @@ import random
 import asyncio
 import discord
 from discord.ext import commands
-import yt_dlp
 from keep_alive import keep_alive
 
 intents = discord.Intents.default()
@@ -270,79 +269,7 @@ async def on_voice_state_update(member, before, after):
                 ses_xp[member.id] = ses_xp.get(member.id, 0) + kazanilan_ses_xp
             del ses_takip[member.id]
 
-# --- 4. YOUTUBE / ŞARKI ADI ARAMALI MÜZİK SİSTEMİ ---
-YDL_OPTIONS = {'format': 'bestaudio/best', 'noplaylist': 'True'}
-FFMPEG_OPTIONS = {
-    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-    'options': '-vn'
-}
-
-@bot.command(name="çal", aliases=["oyat", "oynat"])
-async def cal(ctx, *, arama: str):
-    if not ctx.author.voice:
-        await ctx.send("❌ Önce bir ses kanalına girmelisin!")
-        return
-
-    kanal = ctx.author.voice.channel
-    if ctx.voice_client is None:
-        await kanal.connect()
-    elif ctx.voice_client.channel != kanal:
-        await ctx.voice_client.move_to(kanal)
-
-    voice_client = ctx.voice_client
-    if voice_client.is_playing():
-        voice_client.stop()
-
-    await ctx.send(f"🔍 Aratılıyor ve oynatılıyor: `{arama}`...")
-
-    try:
-        with yt_dlp.YoutubeDL(YDL_OPTIONS) as ydl:
-            # Eğer doğrudan link değil de isim yazıldıysa ytsearch ile aratır
-            info = ydl.extract_info(f"ytsearch:{arama}", download=False)
-            if 'entries' in info:
-                info = info['entries'][0]
-            url = info['url']
-            baslik = info.get('title', 'Bilinmeyen Şarkı')
-
-        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(url, **FFMPEG_OPTIONS))
-        voice_client.play(source, after=lambda e: print(f'Müzik bitti: {e}') if e else None)
-        await ctx.send(f"🎶 Çalınıyor: **{baslik}**")
-    except Exception as e:
-        await ctx.send(f"⚠️ Şarkı oynatılırken bir hata oluştu: `{e}`")
-
-@bot.command(name="duraklat")
-async def duraklat(ctx):
-    if ctx.voice_client and ctx.voice_client.is_playing():
-        ctx.voice_client.pause()
-        await ctx.send("⏸️ Müzik duraklatıldı.")
-    else:
-        await ctx.send("❌ Şu an çalan bir müzik yok.")
-
-@bot.command(name="devam")
-async def devam(ctx):
-    if ctx.voice_client and ctx.voice_client.is_paused():
-        ctx.voice_client.resume()
-        await ctx.send("▶️ Müzik devam ediyor.")
-    else:
-        await ctx.send("❌ Müzik duraklatılmış durumda değil.")
-
-@bot.command(name="atla", aliases=["gec"])
-async def atla(ctx):
-    if ctx.voice_client and ctx.voice_client.is_playing():
-        ctx.voice_client.stop()
-        await ctx.send("⏭️ Müzik atlandı.")
-    else:
-        await ctx.send("❌ Atlanacak müzik yok.")
-
-@bot.command(name="ayrıl", aliases=["disconnect", "çık"])
-async def ayril(ctx):
-    if ctx.voice_client:
-        await ctx.voice_client.disconnect()
-        await ctx.send("👋 Ses kanalından ayrıldım.")
-    else:
-        await ctx.send("❌ Zaten bir ses kanalında değilim.")
-
-# --- 5. MESAJ KONTROLÜ VE KÜFÜR FİLTRESİ ---
+# --- 4. MESAJ KONTROLÜ VE KÜFÜR FİLTRESİ ---
 @bot.event
 async def on_message(message):
     global mesaj_sayaci
@@ -400,7 +327,7 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-# --- 6. YARDIM MENÜSÜ ---
+# --- 5. YARDIM MENÜSÜ ---
 @bot.command(name="yardim")
 async def yardim(ctx):
     embed = discord.Embed(
@@ -409,9 +336,6 @@ async def yardim(ctx):
         color=discord.Color.green()
     )
     embed.add_field(name="!yardim", value="Komutları listeler.", inline=False)
-    embed.add_field(name="!çal <şarkı adı>", value="Şarkı adını yazar ve otomatik çalar.", inline=False)
-    embed.add_field(name="!duraklat / !devam", value="Müziği durdurur veya devam ettirir.", inline=False)
-    embed.add_field(name="!atla / !ayrıl", value="Müziği atlar veya sesten çıkar.", inline=False)
     embed.add_field(name="!git <ses kanalı>", value="Boşsa direkt gider, doluysa odadakilerin ✅ onayından sonra seni içeri alır.", inline=False)
     embed.add_field(name="!oda-kapat / !oda-aç", value="Özel ses odasını kilitler/açar.", inline=False)
     embed.add_field(name="!sayaç", value="Sunucu üye hedefini gösterir.", inline=False)
@@ -435,7 +359,7 @@ async def yardim(ctx):
     embed.add_field(name="!kick / !ban", value="Üye atar/yasaklar (Yönetici).", inline=False)
     await ctx.send(embed=embed)
 
-# --- 7. SES KANALINA GİTME VE EMOJİ ONAY SİSTEMİ (!git) ---
+# --- 6. SES KANALINA GİTME VE EMOJİ ONAY SİSTEMİ (!git) ---
 @bot.command(name="git")
 async def git(ctx, *, kanal_adi: str):
     hedef_kanal = discord.utils.get(ctx.guild.voice_channels, name=kanal_adi)
@@ -472,11 +396,11 @@ async def git(ctx, *, kanal_adi: str):
     try:
         reaction, user = await bot.wait_for('reaction_add', timeout=30.0, check=check)
         await hedef_uye.move_to(hedef_kanal)
-        await ctx.send(f"✅ **{user.name}** onay verdi ve {hedef_newUser.mention if 'hedef_newUser' in locals() else hedef_uye.mention}, **{hedef_kanal.name}** kanalına alındı!")
+        await ctx.send(f"✅ **{user.name}** onay verdi ve {hedef_uye.mention}, **{hedef_kanal.name}** kanalına alındı!")
     except asyncio.TimeoutError:
         await ctx.send(f"⏱️ Süre doldu, **{hedef_kanal.name}** odasından kimse onay vermedi.")
 
-# --- 8. ÖZEL ODA VE SAYAÇ KOMUTLARI ---
+# --- 7. ÖZEL ODA VE SAYAÇ KOMUTLARI ---
 @bot.command(name="oda-kapat")
 async def oda_kapat(ctx):
     if ctx.author.voice and ctx.author.voice.channel:
@@ -521,7 +445,7 @@ async def autorol_ayarla(ctx, *, rol_adi: str):
     else:
         await ctx.send(f"❌ '{rol_adi}' adında bir rol bulunamadı.")
 
-# --- 9. DİĞER KOMUTLAR ---
+# --- 8. DİĞER KOMUTLAR ---
 @bot.command(name="ses-seviye")
 async def ses_seviye(ctx, member: discord.Member = None):
     member = member or ctx.author
@@ -651,7 +575,7 @@ async def seviye(ctx, member: discord.Member = None):
     await ctx.send(embed=discord.Embed(title=f"⭐ {member.name} Seviye", description=f"XP: {xp} (Seviye: {xp // 100})", color=discord.Color.orange()))
 
 @bot.command(name="sunucu-bilgi")
-async def sunucu_bilgi(ctx: commands.Context):
+async def sunucu_bilgi(ctx):
     g = ctx.guild
     await ctx.send(embed=discord.Embed(title=f"📊 {g.name}", description=f"Sahip: {g.owner}\nÜye: {g.member_count}", color=discord.Color.purple()))
 
