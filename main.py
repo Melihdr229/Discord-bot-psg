@@ -22,7 +22,7 @@ aktif_tahminler = {}
 afk_kullanicilar = {}  
 uyari_veritabani = {}  
 aktif_sorular = {}     
-adam_asmaca_oyunlari = {} # Kanal bazlı adam asmaca oyun takibi
+adam_asmaca_oyunlari = {} 
 
 OTO_CEVAPLAR = {
     "sa": "as",
@@ -319,7 +319,7 @@ async def on_message(message):
             await message.channel.send(f"⚠️ Bu harfi zaten söyledin, başka bir harf dene!", delete_after=4)
         elif harf in oyun["kelime"]:
             oyun["tahminler"].append(harf)
-             gizli_goruntu = " ".join([h if h in oyun["tahminler"] else "_" for h in oyun["kelime"]])
+            gizli_goruntu = " ".join([h if h in oyun["tahminler"] else "_" for h in oyun["kelime"]])
             if "_" not in gizli_goruntu:
                 await message.channel.send(f"🎉 Tebrikler {message.author.mention}! Kelimeyi doğru bildin: **{oyun['kelime'].upper()}**. **Çok akıllısın maşallah!** 👑")
                 del adam_asmaca_oyunlari[message.channel.id]
