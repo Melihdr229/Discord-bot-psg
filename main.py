@@ -47,23 +47,28 @@ mesaj_sayaci = 0
 async def on_ready():
     print(f"Giriş yapıldı! Bot aktif: {bot.user}")
 
-# --- 1. OTOMATİK ROL VE HOŞ GELDİN MESAJI ---
+# --- 1. OTOMATİK ROL VE HOŞ GELDİN MESAJI (GÜNCELLENDİ) ---
 @bot.event
 async def on_member_join(member):
+    # Önce !autorol-ayarla ile ayarlananı arar, yoksa doğrudan "Üye" rolünü arar
     verilecek_rol_adi = sunucu_autorol.get(member.guild.id, "Üye")
     rol = discord.utils.get(member.guild.roles, name=verilecek_rol_adi)
     
+    # Eğer "Üye" de bulunamazsa sunucudaki ilk normal rolü alternatif olarak aratabiliriz
+    if not rol:
+        rol = discord.utils.get(member.guild.roles, name="Üye") or discord.utils.get(member.guild.roles, name="uye")
+
     if rol:
         try:
             await member.add_roles(rol)
-        except:
-            pass
+        except Exception as e:
+            print(f"Otorol verme hatası: {e}")
 
     channel = discord.utils.get(member.guild.text_channels, name="hosgeldin") or discord.utils.get(member.guild.text_channels, name="giriş")
     if channel:
         embed = discord.Embed(
             title="🎉 Sunucuya Biri Katıldı!",
-            description=f"Aramıza hoş geldin, {member.mention}! Otomatik olarak **{verilecek_rol_adi}** rolün verildi. Seninle beraber **{member.guild.member_count}** kişi olduk.",
+            description=f"Aramıza hoş geldin, {member.mention}! Otomatik olarak rolün verildi. Seninle beraber **{member.guild.member_count}** kişi olduk.",
             color=discord.Color.gold()
         )
         embed.set_thumbnail(url=member.avatar.url if member.avatar else member.default_avatar.url)
