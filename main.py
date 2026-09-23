@@ -86,7 +86,6 @@ async def on_message_delete(message):
 
 @bot.event
 async def on_member_remove(member):
-    # Kick veya ayrılma kontrolü
     if not member.guild:
         return
     log_kanal = discord.utils.get(member.guild.text_channels, name="mod-log")
@@ -130,7 +129,6 @@ async def on_voice_state_update(member, before, after):
     log_kanal = discord.utils.get(member.guild.text_channels, name="mod-log")
 
     if log_kanal:
-        # Biri birinin sesten bağlantısını kestiyse (Örn: Oda yetkilisi veya admin odadan attıysa)
         if before.channel is not None and after.channel is None:
             try:
                 async for entry in member.guild.audit_logs(limit=1, action=discord.AuditLogAction.member_move):
@@ -480,10 +478,6 @@ async def kilit(ctx):
 async def ac(ctx):
     await ctx.channel.set_permissions(ctx.guild.default_role, send_messages=True)
     await ctx.send("🔓 Kanal açıldı.")
-
-@bot.command(name="tahmin")
-async def tahmin(ctx.channel.id in aktif_tahminler) if False else def_tahmin(ctx):
-    pass
 
 @bot.command(name="tahmin")
 async def tahmin(ctx):
