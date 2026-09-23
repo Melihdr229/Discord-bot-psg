@@ -21,7 +21,6 @@ kilitli_odalilar = set()
 aktif_tahminler = {}  
 afk_kullanicilar = {}  
 uyari_veritabani = {}  
-gecici_odalar = set()  # Açılan özel ve Among Us odalarını takip etmek için
 
 OTO_CEVAPLAR = {
     "sa": "as",
@@ -205,7 +204,7 @@ async def on_member_update(before, after):
             embed = discord.Embed(title="🏷️ Rol Güncellendi", description=desc, color=discord.Color.purple())
             await log_kanal.send(embed=embed)
 
-# --- 3. SES KANALI, ÖZEL ODA VE ANINDA TEMİZLİK SİSTEMİ ---
+# --- 3. SES KANALI VE KESİN ÇÖZÜMLÜ OTOMATİK ODA SİSTEMİ ---
 @bot.event
 async def on_voice_state_update(member, before, after):
     if member.bot:
@@ -231,10 +230,9 @@ async def on_voice_state_update(member, before, after):
         elif before.channel != after.channel and before.channel is not None and after.channel is not None:
             await log_kanal.send(embed=discord.Embed(title="🔀 Ses Kanalı Değiştirdi", description=f"{member.mention} kullanıcısı **{before.channel.name}** kanalından **{after.channel.name}** kanalına geçiş yaptı.", color=discord.Color.gold()))
 
-    # Boşalan Geçici Odaları Temizleme Kontrolü
-    if before.channel and before.channel.id in gecicı_odalar:
+    # 1. Önceki kanal boşalan özel bir oda ise (İsminde "Odası" veya "in Odası" geçiyorsa) ANINDA SİL
+    if before.channel and ("in Odası" in before.channel.name or "Among Us Odası" in before.channel.name):
         if len(before.channel.members) == 0:
-            gecicı_odalar.discard(before.channel.id)
             if before.channel.id in kilitli_odalilar:
                 kilitli_odalilar.remove(before.channel.id)
             try:
@@ -242,22 +240,20 @@ async def on_voice_state_update(member, before, after):
             except:
                 pass
 
-    # Normal Özel Oda Oluşturma
+    # 2. Normal Özel Oda Oluşturma Tetikleyicisi
     if after.channel and after.channel.name == "➕ Oda Oluştur":
         guild = member.guild
         category = after.channel.category
         oda_adi = f"🔊 | {member.name}'in Odası"
         yeni_kanal = await guild.create_voice_channel(oda_adi, category=category)
-        gecicı_odalar.add(yeni_kanal.id)
         await member.move_to(yeni_kanal)
 
-    # Among Us Odası Oluşturma (12 Kişilik)
+    # 3. Among Us Odası Oluşturma Tetikleyicisi (12 Kişilik)
     if after.channel and after.channel.name == "➕ Among Us Odası":
         guild = member.guild
         category = after.channel.category
         oda_adi = f"🚀 | {member.name}'in Among Us Odası"
         yeni_kanal = await guild.create_voice_channel(oda_adi, category=category, user_limit=12)
-        gecicı_odalar.add(yeni_kanal.id)
         await member.move_to(yeni_kanal)
 
     import time
