@@ -43,11 +43,14 @@ GUNCEL_SORULAR = [
     {"soru": "🧠 **Günün Bilgi Sorusu:** İstanbul hangi yıl feth edilmiştir?", "cevap": "1453"}
 ]
 
-ASMACA_KELIMELERI = [
-    "bilgisayar", "galatasaray", "istanbul", "programlama", "discord", 
-    "futbolcu", "mühendis", "teknoloji", "matematik", "üniversite",
-    "kahraman", "kütüphane", "laboratuvar", "televizyon", "gökyüzü"
-]
+# Kategori Bazlı Adam Asmaca Kelimeleri
+ASMACA_KATEGORILERI = {
+    "lol": ["yasuo", "thresh", "lee sin", "lux", "ahri", "zed", "blitzcrank", "jinx", "kled", "warwick", "sett"],
+    "valorant": ["jett", "reyna", "sage", "omen", "vandal", "phantom", "cypher", "sova", "spike", "bind", "ascent"],
+    "minecraft": ["diamond", "creeper", "enderman", "obsidian", "nether", "redstone", "steve", "zombie", "pickaxe", "village"],
+    "tarih": ["istanbul", "malazgirt", "osmanlı", "selçuklu", "cumhuriyet", "atatürk", "çanakkale", "fatih", "milli mücadele"],
+    "matematik": ["türev", "integral", "geometri", "matris", "fonksiyon", "trigonometri", "logaritma", "olasılık", "parabol"]
+}
 
 mesaj_sayaci = 0
 
@@ -301,7 +304,7 @@ async def on_voice_state_update(member, before, after):
                 ses_xp[member.id] = ses_xp.get(member.id, 0) + kazanilan_ses_xp
             del ses_takip[member.id]
 
-# --- 4. MESAJ KONTROLÜ, KÜFÜR FİLTRESİ VE ADAM ASMACA / BİLGİ SORULARI ---
+# --- 4. MESAJ KONTROLÜ, KÜFÜR FİLTRESİ VE OYUNLAR ---
 @bot.event
 async def on_message(message):
     global mesaj_sayaci
@@ -319,7 +322,7 @@ async def on_message(message):
             await message.channel.send(f"⚠️ Bu harfi zaten söyledin, başka bir harf dene!", delete_after=4)
         elif harf in oyun["kelime"]:
             oyun["tahminler"].append(harf)
-            gizli_goruntu = " ".join([h if h in oyun["tahminler"] else "_" for h in oyun["kelime"]])
+            gizli_goruntu = " ".join([h if h in oyun["tahminler"] or h == " " else "_" for h in oyun["kelime"]])
             if "_" not in gizli_goruntu:
                 await message.channel.send(f"🎉 Tebrikler {message.author.mention}! Kelimeyi doğru bildin: **{oyun['kelime'].upper()}**. **Çok akıllısın maşallah!** 👑")
                 del adam_asmaca_oyunlari[message.channel.id]
@@ -332,7 +335,7 @@ async def on_message(message):
                 await message.channel.send(f"💀 Oyunu kaybettin! Asıldın... Doğru kelime: **{oyun['kelime'].upper()}**")
                 del adam_asmaca_oyunlari[message.channel.id]
             else:
-                gizli_goruntu = " ".join([h if h in oyun['tahminler'] else "_" for h in oyun['kelime']])
+                gizli_goruntu = " ".join([h if h in oyun['tahminler'] or h == " " else "_" for h in oyun['kelime']])
                 await message.channel.send(f"❌ Yanlış harf! Kalan Can: **{oyun['can']}** ❤️\nDurum: `{gizli_goruntu}`")
 
     # Günün Sorusu Kontrolü
@@ -393,23 +396,34 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-# --- 5. ADAM ASMACA KOMUTU (!adam-asmaca) ---
+# --- 5. ADAM ASMACA KOMUTU (!adam-asmaca [kategori]) ---
 @bot.command(name="adam-asmaca")
-async def adam_asmaca(ctx):
+async def adam_asmaca(ctx, kategori: str = None):
     if ctx.channel.id in adam_asmaca_oyunlari:
         await ctx.send("⚠️ Bu kanalda zaten devam eden bir Adam Asmaca oyunu var!")
         return
 
-    secilen_kelime = random.choice(ASMACA_KELIMELERI)
+    kategori = kategori.lower() if kategori else None
+    
+    if kategori and kategori in ASMACA_KATEGORILERI:
+        secilen_kelime = random.choice(ASMACA_KATEGORILERI[kategori])
+        kategori_adi = kategori.upper()
+    else:
+        # Kategori belirtilmezse rastgele bir kategoriden seç
+        tum_kategoriler = list(ASMACA_KATEGORILERI.keys())
+        rastgele_kat = random.choice(tum_kategoriler)
+        secilen_kelime = random.choice(ASMACA_KATEGORILERI[rastgele_kat])
+        kategori_adi = rastgele_kat.upper()
+
     adam_asmaca_oyunlari[ctx.channel.id] = {
         "kelime": secilen_kelime,
         "tahminler": [],
         "can": 6
     }
 
-    gizli_goruntu = " ".join(["_" for _ in secilen_kelime])
+    gizli_goruntu = " ".join(["_" if h != " " else "  " for h in secilen_kelime])
     embed = discord.Embed(
-        title="🎮 Adam Asmaca Başladı!",
+        title=f"🎮 Adam Asmaca Başladı! ({kategori_adi})",
         description=f"Kelimeyi bulmak için sohbetten tek harf yazarak tahmin et!\n\n**Kelime:** `{gizli_goruntu}`\n❤️ **Kalan Can:** 6",
         color=discord.Color.blue()
     )
@@ -443,7 +457,7 @@ async def yardim(ctx):
         description="Sunucuyu yönetmek ve eğlenmek için kullanabileceğin tüm komutlar:",
         color=discord.Color.green()
     )
-    embed.add_field(name="!adam-asmaca", value="Kanalda Adam Asmaca oyununu başlatır.", inline=False)
+    embed.add_field(name="!adam-asmaca [lol/valorant/minecraft/tarih/matematik]", value="Belirtilen kategoride (veya rastgele) Adam Asmaca başlatır.", inline=False)
     embed.add_field(name="!kurulum", value="Sunucu istatistik kanallarını otomatik kurar (Yönetici).", inline=False)
     embed.add_field(name="!yardim", value="Komutları listeler.", inline=False)
     embed.add_field(name="!git <ses kanalı>", value="Boşsa direkt gider, doluysa odadakilerin ✅ onayından sonra seni içeri alır.", inline=False)
