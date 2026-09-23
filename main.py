@@ -230,7 +230,6 @@ async def on_voice_state_update(member, before, after):
         elif before.channel != after.channel and before.channel is not None and after.channel is not None:
             await log_kanal.send(embed=discord.Embed(title="🔀 Ses Kanalı Değiştirdi", description=f"{member.mention} kullanıcısı **{before.channel.name}** kanalından **{after.channel.name}** kanalına geçiş yaptı.", color=discord.Color.gold()))
 
-    # 1. Önceki kanal boşalan özel bir oda ise (İsminde "Odası" veya "in Odası" geçiyorsa) ANINDA SİL
     if before.channel and ("in Odası" in before.channel.name or "Among Us Odası" in before.channel.name):
         if len(before.channel.members) == 0:
             if before.channel.id in kilitli_odalilar:
@@ -240,7 +239,6 @@ async def on_voice_state_update(member, before, after):
             except:
                 pass
 
-    # 2. Normal Özel Oda Oluşturma Tetikleyicisi
     if after.channel and after.channel.name == "➕ Oda Oluştur":
         guild = member.guild
         category = after.channel.category
@@ -248,7 +246,6 @@ async def on_voice_state_update(member, before, after):
         yeni_kanal = await guild.create_voice_channel(oda_adi, category=category)
         await member.move_to(yeni_kanal)
 
-    # 3. Among Us Odası Oluşturma Tetikleyicisi (12 Kişilik)
     if after.channel and after.channel.name == "➕ Among Us Odası":
         guild = member.guild
         category = after.channel.category
@@ -272,7 +269,68 @@ async def on_voice_state_update(member, before, after):
                 ses_xp[member.id] = ses_xp.get(member.id, 0) + kazanilan_ses_xp
             del ses_takip[member.id]
 
-# --- 4. MESAJ KONTROLÜ VE KÜFÜR FİLTRESİ ---
+# --- 4. MÜZİK KOMUTLARI (YOUTUBE / SES AKIŞI) ---
+FFMPEG_OPTIONS = {
+    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+    'options': '-vn'
+}
+
+@bot.command(name="çal", aliases=["oyat", "oynat"])
+async def cal(ctx, *, arama_veya_url: str):
+    if not ctx.author.voice:
+        await ctx.send("❌ Önce bir ses kanalına girmelisin!")
+        return
+
+    kanal = ctx.author.voice.channel
+    if ctx.voice_client is None:
+        await kanal.connect()
+    elif ctx.voice_client.channel != kanal:
+        await ctx.voice_client.move_to(kanal)
+
+    voice_client = ctx.voice_client
+
+    # Doğrudan ses akışı (stream) bağlantısı veya arama simülasyonu
+    try:
+        # yt-dlp veya doğrudan ses kaynağı entegrasyonu
+        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(arama_veya_url, **FFMPEG_OPTIONS))
+        voice_client.play(source, after=lambda e: print(f'Müzik bitti: {e}') if e else None)
+        await ctx.send(f"🎶 Müzik çalmaya başladı: `{arama_veya_url}`")
+    except Exception as e:
+        await ctx.send(f"⚠️ Müzik çalınırken bir hata oluştu (Geçerli bir ses/akış URL'si girdiğinden emin ol): `{e}`")
+
+@bot.command(name="duraklat")
+async def duraklat(ctx):
+    if ctx.voice_client and ctx.voice_client.is_playing():
+        ctx.voice_client.pause()
+        await ctx.send("⏸️ Müzik duraklatıldı.")
+    else:
+        await ctx.send("❌ Şu an çalan bir müzik yok.")
+
+@bot.command(name="devam")
+async def devam(ctx):
+    if ctx.voice_client and ctx.voice_client.is_paused():
+        ctx.voice_client.resume()
+        await ctx.send("▶️ Müzik devam ediyor.")
+    else:
+        await ctx.send("❌ Müzik duraklatılmış durumda değil.")
+
+@bot.command(name="atla", aliases=["gec"])
+async def atla(ctx):
+    if ctx.voice_client and ctx.voice_client.is_playing():
+        ctx.voice_client.stop()
+        await ctx.send("⏭️ Müzik atlandı.")
+    else:
+        await ctx.send("❌ Atlanacak müzik yok.")
+
+@bot.command(name="ayrıl", aliases=["disconnect", "çık"])
+async def ayril(ctx):
+    if ctx.voice_client:
+        await ctx.voice_client.disconnect()
+        await ctx.send("👋 Ses kanalından ayrıldım.")
+    else:
+        await ctx.send("❌ Zaten bir ses kanalında değilim.")
+
+# --- 5. MESAJ KONTROLÜ VE KÜFÜR FİLTRESİ ---
 @bot.event
 async def on_message(message):
     global mesaj_sayaci
@@ -330,7 +388,7 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-# --- 5. YARDIM MENÜSÜ ---
+# --- 6. YARDIM MENÜSÜ ---
 @bot.command(name="yardim")
 async def yardim(ctx):
     embed = discord.Embed(
@@ -339,6 +397,9 @@ async def yardim(ctx):
         color=discord.Color.green()
     )
     embed.add_field(name="!yardim", value="Komutları listeler.", inline=False)
+    embed.add_field(name="!çal <ses URL>", value="Ses kanalına gelip müzik/akış oynatır.", inline=False)
+    embed.add_field(name="!duraklat / !devam", value="Müziği durdurur veya devam ettirir.", inline=False)
+    embed.add_field(name="!atla / !ayrıl", value="Müziği atlar veya sesten çıkar.", inline=False)
     embed.add_field(name="!git <ses kanalı>", value="Boşsa direkt gider, doluysa odadakilerin ✅ onayından sonra seni içeri alır.", inline=False)
     embed.add_field(name="!oda-kapat / !oda-aç", value="Özel ses odasını kilitler/açar.", inline=False)
     embed.add_field(name="!sayaç", value="Sunucu üye hedefini gösterir.", inline=False)
@@ -362,7 +423,7 @@ async def yardim(ctx):
     embed.add_field(name="!kick / !ban", value="Üye atar/yasaklar (Yönetici).", inline=False)
     await ctx.send(embed=embed)
 
-# --- 6. SES KANALINA GİTME VE EMOJİ ONAY SİSTEMİ (!git) ---
+# --- 7. SES KANALINA GİTME VE EMOJİ ONAY SİSTEMİ (!git) ---
 @bot.command(name="git")
 async def git(ctx, *, kanal_adi: str):
     hedef_kanal = discord.utils.get(ctx.guild.voice_channels, name=kanal_adi)
@@ -403,7 +464,7 @@ async def git(ctx, *, kanal_adi: str):
     except asyncio.TimeoutError:
         await ctx.send(f"⏱️ Süre doldu, **{hedef_kanal.name}** odasından kimse onay vermedi.")
 
-# --- 7. ÖZEL ODA VE SAYAÇ KOMUTLARI ---
+# --- 8. ÖZEL ODA VE SAYAÇ KOMUTLARI ---
 @bot.command(name="oda-kapat")
 async def oda_kapat(ctx):
     if ctx.author.voice and ctx.author.voice.channel:
@@ -448,7 +509,7 @@ async def autorol_ayarla(ctx, *, rol_adi: str):
     else:
         await ctx.send(f"❌ '{rol_adi}' adında bir rol bulunamadı.")
 
-# --- 8. DİĞER KOMUTLAR ---
+# --- 9. DİĞER KOMUTLAR ---
 @bot.command(name="ses-seviye")
 async def ses_seviye(ctx, member: discord.Member = None):
     member = member or ctx.author
