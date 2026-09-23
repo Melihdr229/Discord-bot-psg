@@ -23,7 +23,7 @@ afk_kullanicilar = {}
 uyari_veritabani = {}  
 aktif_sorular = {}     
 adam_asmaca_oyunlari = {} 
-milyoner_oyunlari = {} 
+milyoner_oyunlari = {} # Aktif Milyoner turları
 
 OTO_CEVAPLAR = {
     "sa": "as",
@@ -52,61 +52,103 @@ ASMACA_KATEGORILERI = {
     "matematik": ["türev", "integral", "geometri", "matris", "fonksiyon", "trigonometri", "logaritma", "olasılık", "parabol"]
 }
 
-# Kim Milyoner Olmak İster Güncellenmiş ve Yeni Kategorili Soru Havuzu
+# 5 Aşamalı Zorluk ve Ödül Basamaklarına Göre Milyoner Soru Havuzu
 MILYONER_VERITABANI = {
     "lol": [
-        {"soru": "League of Legends oyununda 'Baron Nashor' katledildiğinde takıma hangi kalıcı güçlendirme verilir?", "secenekler": ["A) Elixir of Iron", "B) Hand of Baron (Nashor Gücü)", "C) Aspect of the Dragon", "D) Crest of Cinders"], "cevap": "b"},
-        {"soru": "Hangisi League of Legends evrelerinde bir orman (jungle) kampı değildir?", "secenekler": ["A) Kurtlar (Murk Wolves)", "B) Kayacıllar (Krugs)", "C) Ejderha (Dragon)", "D) Ejderha Yavrusu Yuvası"], "cevap": "d"},
-        {"soru": "Blitzcrank karakterinin Q yeteneğinin adı nedir?", "secenekler": ["A) Rocket Grab (Roket El)", "B) Power Fist", "C) Static Field", "D) Overdrive"], "cevap": "a"},
-        {"soru": "League of Legends'da dereceli sistemde Ustalık ile Şampiyonluk arasında yer alan lig hangisidir?", "secenekler": ["A) Elmas", "B) Üstadlık (Grandmaster)", "C) Zümrüt", "D) Demir"], "cevap": "b"},
-        {"soru": "Summoner's Rift haritasında orta koridorda ilk minyon dalgası kaçıncı saniyede doğar?", "secenekler": ["A) 0:00", "B) 1:05", "C) 1:30", "D) 2:00"], "cevap": "c"}
+        # Soru 1 (1.000 TL)
+        {"soru": "League of Legends oyununda haritada tarafsız canavarların doğduğu alanlara ne ad verilir?", "secenekler": ["A) Üs (Base)", "B) Orman (Jungle)", "C) Koridor (Lane)", "D) Dükkan (Shop)"], "cevap": "b", "odul": "1.000 TL"},
+        # Soru 2 (10.000 TL)
+        {"soru": "Blitzcrank karakterinin Q yeteneğinin adı nedir?", "secenekler": ["A) Rocket Grab (Roket El)", "B) Power Fist", "C) Static Field", "D) Overdrive"], "cevap": "a", "odul": "10.000 TL"},
+        # Soru 3 (50.000 TL)
+        {"soru": "Hangisi League of Legends evrelerinde bir orman kampı değildir?", "secenekler": ["A) Kurtlar", "B) Kayacıllar", "C) Ejderha", "D) Ejderha Yavrusu Yuvası"], "cevap": "d", "odul": "50.000 TL"},
+        # Soru 4 (250.000 TL)
+        {"soru": "League of Legends'da dereceli sistemde Ustalık ile Şampiyonluk arasında yer alan lig hangisidir?", "secenekler": ["A) Elmas", "B) Üstadlık (Grandmaster)", "C) Zümrüt", "D) Demir"], "cevap": "b", "odul": "250.000 TL"},
+        # Soru 5 (1.000.000 TL)
+        {"soru": "League of Legends oyununda 'Baron Nashor' katledildiğinde takıma hangi kalıcı güçlendirme verilir?", "secenekler": ["A) Elixir of Iron", "B) Hand of Baron (Nashor Gücü)", "C) Aspect of the Dragon", "D) Crest of Cinders"], "cevap": "b", "odul": "1.000.000 TL"}
     ],
     "valorant": [
-        {"soru": "Valorant oyununda Spike'ı yerleştirmek (plant) normal şartlarda kaç saniye sürer?", "secenekler": ["A) 2 saniye", "B) 4 saniye", "C) 6 saniye", "D) 8 saniye"], "cevap": "b"},
-        {"soru": "Hangisi Valorant'ın 'Öncü (Initiator)' ajanlarından biri değildir?", "secenekler": ["A) Sova", "B) Skye", "C) Jett", "D) Fade"], "cevap": "c"},
-        {"soru": "Valorant'ta en yüksek rekabetçi rütbe kademesi aşağıdakilerden hangisidir?", "secenekler": ["A) Yücelik", "B) Ölümsüzlük", "C) Radiant (Radyant)", "D) Elmas"], "cevap": "c"},
-        {"soru": "Valorant oyununda silah satın alma ekranında takım arkadaşlarından para istemek için kullanılan terim nedir?", "secenekler": ["A) Request (İstek)", "B) Economy", "C) Drop", "D) Buy"], "cevap": "a"},
-        {"soru": "Ajan Brimstone hangi sınıfa (Role) aittir?", "secenekler": ["A) Düellocu", "B) Kontrol Uzmanı (Controller)", "C) Öncü", "D) Gözcü"], "cevap": "b"}
+        # Soru 1 (1.000 TL)
+        {"soru": "Valorant oyununda bomba olarak adlandırılan nesnenin resmi adı nedir?", "secenekler": ["A) C4", "B) Spike", "C) Bomb", "D) Dinamit"], "cevap": "b", "odul": "1.000 TL"},
+        # Soru 2 (10.000 TL)
+        {"soru": "Ajan Brimstone hangi sınıfa (Role) aittir?", "secenekler": ["A) Düellocu", "B) Kontrol Uzmanı (Controller)", "C) Öncü", "D) Gözcü"], "cevap": "b", "odul": "10.000 TL"},
+        # Soru 3 (50.000 TL)
+        {"soru": "Hangisi Valorant'ın 'Öncü (Initiator)' ajanlarından biri değildir?", "secenekler": ["A) Sova", "B) Skye", "C) Jett", "D) Fade"], "cevap": "c", "odul": "50.000 TL"},
+        # Soru 4 (250.000 TL)
+        {"soru": "Valorant oyununda Spike'ı yerleştirmek (plant) normal şartlarda kaç saniye sürer?", "secenekler": ["A) 2 saniye", "B) 4 saniye", "C) 6 saniye", "D) 8 saniye"], "cevap": "b", "odul": "250.000 TL"},
+        # Soru 5 (1.000.000 TL)
+        {"soru": "Valorant'ta en yüksek rekabetçi rütbe kademesi aşağıdakilerden hangisidir?", "secenekler": ["A) Yücelik", "B) Ölümsüzlük", "C) Radiant (Radyant)", "D) Elmas"], "cevap": "c", "odul": "1.000.000 TL"}
     ],
     "tarih": [
-        {"soru": "Osmanlı İmparatorluğu'nun kuruluş yılı resmi olarak genellikle hangi yıl kabul edilir?", "secenekler": ["A) 1299", "B) 1453", "C) 1071", "D) 1923"], "cevap": "a"},
-        {"soru": "Mustafa Kemal Atatürk'e 'Gazi' unvanı hangi savaştan sonra verilmiştir?", "secenekler": ["A) Çanakkale Savaşı", "B) Sakarya Meydan Muharebesi", "C) Büyük Taarruz", "D) I. İnönü Savaşı"], "cevap": "b"},
-        {"soru": "İstanbul kaç yılında Fatih Sultan Mehmet tarafından fethedilmiştir?", "secenekler": ["A) 1299", "B) 1453", "C) 1517", "D) 1923"], "cevap": "b"},
-        {"soru": "Türk tarihinde 'Yurt Açan Savaş' olarak bilinen ve Anadolu'nun kapılarını Türklere açan savaş hangisidir?", "secenekler": ["A) Miryokefalon Savaşı", "B) Malazgirt Savaşı", "C) Dandanakan Savaşı", "D) Pasinler Savaşı"], "cevap": "b"},
-        {"soru": "Türkiye Cumhuriyeti'nin ilk başbakanı kimdir?", "secenekler": ["A) İsmet İnönü", "B) Celâl Bayar", "C) Fevzi Çakmak", "D) Kazım Karabekir"], "cevap": "a"}
+        # Soru 1 (1.000 TL)
+        {"soru": "İstanbul kaç yılında Fatih Sultan Mehmet tarafından fethedilmiştir?", "secenekler": ["A) 1299", "B) 1453", "C) 1517", "D) 1923"], "cevap": "b", "odul": "1.000 TL"},
+        # Soru 2 (10.000 TL)
+        {"soru": "Türkiye Cumhuriyeti'nin ilk başbakanı kimdir?", "secenekler": ["A) İsmet İnönü", "B) Celâl Bayar", "C) Fevzi Çakmak", "D) Kazım Karabekir"], "cevap": "a", "odul": "10.000 TL"},
+        # Soru 3 (50.000 TL)
+        {"soru": "Mustafa Kemal Atatürk'e 'Gazi' unvanı hangi savaştan sonra verilmiştir?", "secenekler": ["A) Çanakkale Savaşı", "B) Sakarya Meydan Muharebesi", "C) Büyük Taarruz", "D) I. İnönü Savaşı"], "cevap": "b", "odul": "50.000 TL"},
+        # Soru 4 (250.000 TL)
+        {"soru": "Türk tarihinde 'Yurt Açan Savaş' olarak bilinen savaş hangisidir?", "secenekler": ["A) Miryokefalon", "B) Malazgirt", "C) Dandanakan", "D) Pasinler"], "cevap": "b", "odul": "250.000 TL"},
+        # Soru 5 (1.000.000 TL)
+        {"soru": "Osmanlı İmparatorluğu'nun kuruluş yılı resmi olarak genellikle hangi yıl kabul edilir?", "secenekler": ["A) 1299", "B) 1302", "C) 1453", "D) 1071"], "cevap": "a", "odul": "1.000.000 TL"}
     ],
     "coğrafya": [
-        {"soru": "Türkiye'nin yüz ölçümü bakımından en büyük ili hangisidir?", "secenekler": ["A) Ankara", "B) Sivas", "C) Konya", "D) Van"], "cevap": "c"},
-        {"soru": "Dünyanın en uzun nehirleri arasında gösterilen Nil Nehri hangi kıtada yer alır?", "secenekler": ["A) Asya", "B) Afrika", "C) Güney Amerika", "D) Avrupa"], "cevap": "b"},
-        {"soru": "Türkiye'nin en yüksek dağı olan Ağrı Dağı hangi ilimiz sınırları içerisindedir?", "secenekler": ["A) Erzurum", "B) Van", "C) Iğdır / Ağrı", "D) Kars"], "cevap": "c"},
-        {"soru": "Hangi kıta yüz ölçümü bakımından dünyanın en küçük kıtasıdır?", "secenekler": ["A) Avrupa", "B) Antarktika", "C) Okyanusya (Avustralya)", "D) Güney Amerika"], "cevap": "c"},
-        {"soru": "Dünyanın en derin okyanus çukuru olan 'Mariana Çukuru' hangi okyanusta yer alır?", "secenekler": ["A) Atlas Okyanusu", "B) Hint Okyanusu", "C) Pasifik (Büyük) Okyanus", "D) Arktik Okyanusu"], "cevap": "c"}
+        # Soru 1 (1.000 TL)
+        {"soru": "Türkiye'nin yüz ölçümü bakımından en büyük ili hangisidir?", "secenekler": ["A) Ankara", "B) Sivas", "C) Konya", "D) Van"], "cevap": "c", "odul": "1.000 TL"},
+        # Soru 2 (10.000 TL)
+        {"soru": "Türkiye'nin en yüksek dağı olan Ağrı Dağı hangi ilimiz sınırları içerisindedir?", "secenekler": ["A) Erzurum", "B) Van", "C) Iğdır / Ağrı", "D) Kars"], "cevap": "c", "odul": "10.000 TL"},
+        # Soru 3 (50.000 TL)
+        {"soru": "Dünyanın en uzun nehirleri arasında gösterilen Nil Nehri hangi kıtada yer alır?", "secenekler": ["A) Asya", "B) Afrika", "C) Güney Amerika", "D) Avrupa"], "cevap": "b", "odul": "50.000 TL"},
+        # Soru 4 (250.000 TL)
+        {"soru": "Hangi kıta yüz ölçümü bakımından dünyanın en küçük kıtasıdır?", "secenekler": ["A) Avrupa", "B) Antarktika", "C) Okyanusya (Avustralya)", "D) Güney Amerika"], "cevap": "c", "odul": "250.000 TL"},
+        # Soru 5 (1.000.000 TL)
+        {"soru": "Dünyanın en derin okyanus çukuru olan 'Mariana Çukuru' hangi okyanusta yer alır?", "secenekler": ["A) Atlas Okyanusu", "B) Hint Okyanusu", "C) Pasifik (Büyük) Okyanus", "D) Arktik Okyanusu"], "cevap": "c", "odul": "1.000.000 TL"}
     ],
     "müzik": [
-        {"soru": "Müzik notalarında 'sol anahtarı' portenin kaçıncı çizgisinden başlar?", "secenekler": ["A) 1. Çizgi", "B) 2. Çizgi", "C) 3. Çizgi", "D) 4. Çizgi"], "cevap": "b"},
-        {"soru": "Türkiye'de 'Dönence', 'Aldırma Gönül' gibi unutulmaz eserlere imza atmış efsanevi Anadolu Rock grubu hangisidir?", "secenekler": ["A) Duman", "B) Moğollar", "C) MFÖ", "D) Athena"], "cevap": "b"},
-        {"soru": "Klasik batı müziğinde 'en yavaş' tempo terimi aşağıdakilerden hangisidir?", "secenekler": ["A) Allegro", "B) Andante", "C) Largo", "D) Presto"], "cevap": "c"},
-        {"soru": "Aşağıdaki enstrümanlardan hangisi yaylı çalgılar grubuna girer?", "secenekler": ["A) Flüt", "B) Viyolonsel (Çello)", "C) Klarnet", "D) Trompet"], "cevap": "b"},
-        {"soru": "Dünyaca ünlü 'Bohemian Rhapsody' şarkısı hangi efsanevi müzik grubuna aittir?", "secenekler": ["A) The Beatles", "B) Pink Floyd", "C) Queen", "D) Led Zeppelin"], "cevap": "c"}
+        # Soru 1 (1.000 TL)
+        {"soru": "Müzik notalarında 'sol anahtarı' portenin kaçıncı çizgisinden başlar?", "secenekler": ["A) 1. Çizgi", "B) 2. Çizgi", "C) 3. Çizgi", "D) 4. Çizgi"], "cevap": "b", "odul": "1.000 TL"},
+        # Soru 2 (10.000 TL)
+        {"soru": "Aşağıdaki enstrümanlardan hangisi yaylı çalgılar grubuna girer?", "secenekler": ["A) Flüt", "B) Viyolonsel (Çello)", "C) Klarnet", "D) Trompet"], "cevap": "b", "odul": "10.000 TL"},
+        # Soru 3 (50.000 TL)
+        {"soru": "Klasik batı müziğinde 'en yavaş' tempo terimi aşağıdakilerden hangisidir?", "secenekler": ["A) Allegro", "B) Andante", "C) Largo", "D) Presto"], "cevap": "c", "odul": "50.000 TL"},
+        # Soru 4 (250.000 TL)
+        {"soru": "Türkiye'de 'Dönence' ve 'Aldırma Gönül' gibi unutulmaz eserlere imza atmış Anadolu Rock grubu hangisidir?", "secenekler": ["A) Duman", "B) Moğollar", "C) MFÖ", "D) Athena"], "cevap": "b", "odul": "250.000 TL"},
+        # Soru 5 (1.000.000 TL)
+        {"soru": "Dünyaca ünlü 'Bohemian Rhapsody' şarkısı hangi efsanevi müzik grubuna aittir?", "secenekler": ["A) The Beatles", "B) Pink Floyd", "C) Queen", "D) Led Zeppelin"], "cevap": "c", "odul": "1.000.000 TL"}
     ],
-    # YENİ EKLENEN KATEGORİLER VE SORULAR:
     "futbol": [
-        {"soru": "Hangi futbol kulübü UEFA Şampiyonlar Ligi'ni tarihte en çok kazanan takımdır?", "secenekler": ["A) AC Milan", "B) Barcelona", "C) Real Madrid", "D) Bayern Munich"], "cevap": "c"},
-        {"soru": "Dünyada 'Kral' (El Rey) lakabıyla tanınan ve 3 kez Dünya Kupası kazanan efsanevi Brezilyalı futbolcu kimdir?", "secenekler": ["A) Maradona", "B) Pele", "C) Ronaldinho", "D) Ronaldo Nazario"], "cevap": "b"},
-        {"soru": "Türkiye A Milli Futbol Takımı, FIFA Dünya Kupası tarihindeki en iyi derecesi olan üçüncülüğü hangi yılda elde etmiştir?", "secenekler": ["A) 1996", "B) 2002", "C) 2008", "D) 2020"], "cevap": "b"},
-        {"soru": "Bir futbol maçında kaleci dışında bir oyuncunun elle müdahale etmesi sonucu hakemin verdiği ceza atışı hangisidir?", "secenekler": ["A) Taç", "B) Korner", "C) Penaltı", "D) Endirekt Vuruş"], "cevap": "c"}
+        # Soru 1 (1.000 TL)
+        {"soru": "Bir futbol maçında kaleci dışında bir oyuncunun elle müdahale etmesi sonucu hakemin verdiği ceza atışı hangisidir?", "secenekler": ["A) Taç", "B) Korner", "C) Penaltı", "D) Endirekt Vuruş"], "cevap": "c", "odul": "1.000 TL"},
+        # Soru 2 (10.000 TL)
+        {"soru": "Türkiye A Milli Futbol Takımı, FIFA Dünya Kupası tarihindeki en iyi derecesi olan üçüncülüğü hangi yılda elde etmiştir?", "secenekler": ["A) 1996", "B) 2002", "C) 2008", "D) 2020"], "cevap": "b", "odul": "10.000 TL"},
+        # Soru 3 (50.000 TL)
+        {"soru": "Dünyada 'Kral' lakabıyla tanınan ve 3 kez Dünya Kupası kazanan efsanevi Brezilyalı futbolcu kimdir?", "secenekler": ["A) Maradona", "B) Pele", "C) Ronaldinho", "D) Ronaldo Nazario"], "cevap": "b", "odul": "50.000 TL"},
+        # Soru 4 (250.000 TL)
+        {"soru": "Hangi futbol kulübü UEFA Şampiyonlar Ligi'ni tarihte en çok kazanan takımdır?", "secenekler": ["A) AC Milan", "B) Barcelona", "C) Real Madrid", "D) Bayern Munich"], "cevap": "c", "odul": "250.000 TL"},
+        # Soru 5 (1.000.000 TL)
+        {"soru": "Uluslararası Futbol Birliği Kurulu (IFAB) kurallarına göre resmi bir futbol maçında bir takımın sahada en az kaç oyuncusu kalırsa maç tatil edilir?", "secenekler": ["A) 5 oyuncu", "B) 6 oyuncu", "C) 7 oyuncu", "D) 9 oyuncu"], "cevap": "c", "odul": "1.000.000 TL"}
     ],
     "genel": [
-        {"soru": "Periyodik tablonun ilk elementi ve evrende en bol bulunan kimyasal element hangisidir?", "secenekler": ["A) Helyum", "B) Oksijen", "C) Hidrojen", "D) Karbon"], "cevap": "c"},
-        {"soru": "Mona Lisa tablosunu çizen dünyaca ünlü İtalyan sanatçı ve deha kimdir?", "secenekler": ["A) Donatello", "B) Leonardo da Vinci", "C) Michelangelo", "D) Raphael"], "cevap": "b"},
-        {"soru": "Güneş sistemindeki en büyük gezegen aşağıdakilerden hangisidir?", "secenekler": ["A) Satürn", "B) Jüpiter", "C) Neptün", "D) Mars"], "cevap": "b"},
-        {"soru": "Nobel Ödülleri hangi ülkede verilmektedir?", "secenekler": ["A) Almanya", "B) İsviçre", "C) İsveç", "D) Fransa"], "cevap": "c"}
+        # Soru 1 (1.000 TL)
+        {"soru": "Güneş sistemindeki en büyük gezegen aşağıdakilerden hangisidir?", "secenekler": ["A) Satürn", "B) Jüpiter", "C) Neptün", "D) Mars"], "cevap": "b", "odul": "1.000 TL"},
+        # Soru 2 (10.000 TL)
+        {"soru": "Mona Lisa tablosunu çizen dünyaca ünlü İtalyan sanatçı ve deha kimdir?", "secenekler": ["A) Donatello", "B) Leonardo da Vinci", "C) Michelangelo", "D) Raphael"], "cevap": "b", "odul": "10.000 TL"},
+        # Soru 3 (50.000 TL)
+        {"soru": "Nobel Ödülleri hangi ülkede verilmektedir?", "secenekler": ["A) Almanya", "B) İsviçre", "C) İsveç", "D) Fransa"], "cevap": "c", "odul": "50.000 TL"},
+        # Soru 4 (250.000 TL)
+        {"soru": "Periyodik tablonun ilk elementi ve evrende en bol bulunan kimyasal element hangisidir?", "secenekler": ["A) Helyum", "B) Oksijen", "C) Hidrojen", "D) Karbon"], "cevap": "c", "odul": "250.000 TL"},
+        # Soru 5 (1.000.000 TL)
+        {"soru": "Dünyanın çevresini ilk kez dolaşan ve Magellan'ın seferini tamamlayan denizci kimdir?", "secenekler": ["A) Vasco da Gama", "B) Kristof Kolomb", "C) Juan Sebastián Elcano", "D) Amerigo Vespucci"], "cevap": "c", "odul": "1.000.000 TL"}
     ],
     "teknoloji": [
-        {"soru": "Yapay zeka alanında sıkça kullanılan 'ChatGPT' dil modelini geliştiren şirketin adı nedir?", "secenekler": ["A) Google", "B) Microsoft", "C) OpenAI", "D) Apple"], "cevap": "c"},
-        {"soru": "Bilgisayarlarda veri depolamak için kullanılan ve elektrik kesildiğinde içerisindeki veriler silinmeyen kalıcı bellek birimi hangisidir?", "secenekler": ["A) RAM", "B) Cache", "C) SSD / Sabit Disk", "D) Register"], "cevap": "c"},
-        {"soru": "İnternetin temelini oluşturan ve 'Ağların Ağı' anlamına gelen küresel sistemin genel kısaltması nedir?", "secenekler": ["A) WWW", "B) HTTP", "C) TCP", "D) LAN"], "cevap": "a"},
-        {"soru": "Linux işletim sisteminin maskotu olan sevimli penguenin adı nedir?", "secenekler": ["A) Pingu", "B) Tux", "C) Linuxy", "D) Waddle"], "cevap": "b"}
+        # Soru 1 (1.000 TL)
+        {"soru": "İnternetin temelini oluşturan ve 'Ağların Ağı' anlamına gelen küresel sistemin kısaltması nedir?", "secenekler": ["A) WWW", "B) HTTP", "C) TCP", "D) LAN"], "cevap": "a", "odul": "1.000 TL"},
+        # Soru 2 (10.000 TL)
+        {"soru": "Linux işletim sisteminin maskotu olan sevimli penguenin adı nedir?", "secenekler": ["A) Pingu", "B) Tux", "C) Linuxy", "D) Waddle"], "cevap": "b", "odul": "10.000 TL"},
+        # Soru 3 (50.000 TL)
+        {"soru": "Yapay zeka alanında sıkça kullanılan 'ChatGPT' dil modelini geliştiren şirketin adı nedir?", "secenekler": ["A) Google", "B) Microsoft", "C) OpenAI", "D) Apple"], "cevap": "c", "odul": "50.000 TL"},
+        # Soru 4 (250.000 TL)
+        {"soru": "Bilgisayarlarda veri depolamak için kullanılan ve elektrik kesildiğinde verileri silinmeyen kalıcı bellek hangisidir?", "secenekler": ["A) RAM", "B) Cache", "C) SSD / Sabit Disk", "D) Register"], "cevap": "c", "odul": "250.000 TL"},
+        # Soru 5 (1.000.000 TL)
+        {"soru": "İlk programlanabilir elektronik bilgisayar olarak kabul edilen ve 1945 yılında geliştirilen devasa cihazın adı nedir?", "secenekler": ["A) ENIAC", "B) UNIVAC", "C) Altair 8800", "D) IBM 5100"], "cevap": "a", "odul": "1.000.000 TL"}
     ]
 }
 
@@ -371,14 +413,32 @@ async def on_message(message):
 
     mesaj_metni = message.content.lower().strip()
     
-    # Kim Milyoner Olmak İster Cevap Kontrolü (a, b, c, d)
+    # Kim Milyoner Olmak İster 5 Turlu Yarışma Kontrolü
     if message.channel.id in milyoner_oyunlari and mesaj_metni in ["a", "b", "c", "d"]:
         oyun = milyoner_oyunlari[message.channel.id]
-        if mesaj_metni == oyun["dogru_cevap"]:
-            await message.channel.send(f"🎉 Tebrikler {message.author.mention}, doğru bildin! **Çok akıllısın maşallah!** 👑 Kazanılan Ödül: **{oyun['odul']}**")
-            del milyoner_oyunlari[message.channel.id]
+        
+        # Sadece oyunu başlatan kişi cevap verebilsin
+        if message.author.id != oyun["oyuncu_id"]:
+            return
+
+        aktif_soru = oyun["sorular"][oyun["tur"]]
+        
+        if mesaj_metni == aktif_soru["cevap"]:
+            oyun["tur"] += 1
+            if oyun["tur"] >= 5:
+                await message.channel.send(f"🏆 İNANILMAZ! {message.author.mention} tüm soruları doğru bildi ve **1.000.000 TL** Büyük Ödülü kazandı! **Çok akıllısın maşallah!** 👑✨")
+                del milyoner_oyunlari[message.channel.id]
+            else:
+                sonraki_soru = oyun["sorular"][oyun["tur"]]
+                secenekler_metni = "\n".join(sonraki_soru["secenekler"])
+                embed = discord.Embed(
+                    title=f"💰 Milyoner Yarışması | Soru {oyun['tur'] + 1} / 5",
+                    description=f"✅ **Tebrikler, doğru bildin!** Sıradaki Ödül: **{sonraki_soru['odul']}**\n\n**Soru:** {sonraki_soru['soru']}\n\n{secenekler_metni}\n\n*Cevap vermek için şıkkın harfini yaz (A, B, C, D)*",
+                    color=discord.Color.gold()
+                )
+                await message.channel.send(embed=embed)
         else:
-            await message.channel.send(f"❌ Yanlış cevap! Maalesef yarışmadan elendin. Doğru cevap: **{oyun['dogru_cevap'].upper()}** şıkkıydı.")
+            await message.channel.send(f"❌ Yanlış cevap! Yarışmadan elendin. Doğru cevap: **{aktif_soru['cevap'].upper()}** şıkkıydı.")
             del milyoner_oyunlari[message.channel.id]
 
     # Adam Asmaca Harf Tahmini Kontrolü
@@ -479,17 +539,21 @@ async def milyoner(ctx, kategori: str = None):
     else:
         secilen_kat = random.choice(tum_kategoriler)
 
-    soru_objesi = random.choice(MILYONER_VERITABANI[secilen_kat])
+    # Seçilen kategoriden 5 soruyu al
+    kategori_sorulari = MILYONER_VERITABANI[secilen_kat]
     
     milyoner_oyunlari[ctx.channel.id] = {
-        "dogru_cevap": soru_objesi["cevap"],
-        "odul": "1.000.000 TL"
+        "oyuncu_id": ctx.author.id,
+        "sorular": kategori_sorulari,
+        "tur": 0
     }
 
-    secenekler_metni = "\n".join(soru_objesi["secenekler"])
+    ilk_soru = kategori_sorulari[0]
+    secenekler_metni = "\n".join(ilk_soru["secenekler"])
+    
     embed = discord.Embed(
         title=f"💰 Kim Milyoner Olmak İster? ({secilen_kat.upper()})",
-        description=f"**Soru:** {soru_objesi['soru']}\n\n{secenekler_metni}\n\n*Cevap vermek için sohbetten doğrudan şıkkın harfini yaz (A, B, C, D)*",
+        description=f"🎯 Yarışmacı: {ctx.author.mention}\n1. Soru Ödülü: **{ilk_soru['odul']}**\n\n**Soru:** {ilk_soru['soru']}\n\n{secenekler_metni}\n\n*Cevap vermek için doğrudan şıkkın harfini yaz (A, B, C, D)*",
         color=discord.Color.gold()
     )
     await ctx.send(embed=embed)
@@ -554,7 +618,7 @@ async def yardim(ctx):
         description="Sunucuyu yönetmek ve eğlenmek için kullanabileceğin tüm komutlar:",
         color=discord.Color.green()
     )
-    embed.add_field(name="!milyoner [lol/valorant/tarih/coğrafya/müzik/futbol/genel/teknoloji]", value="Kim Milyoner Olmak İster yarışması başlatır.", inline=False)
+    embed.add_field(name="!milyoner [lol/valorant/tarih/coğrafya/müzik/futbol/genel/teknoloji]", value="5 soruluk ödüllü Milyoner yarışması başlatır.", inline=False)
     embed.add_field(name="!adam-asmaca [lol/valorant/minecraft/tarih/matematik]", value="Adam Asmaca oyunu başlatır.", inline=False)
     embed.add_field(name="!kurulum", value="Sunucu istatistik kanallarını otomatik kurar (Yönetici).", inline=False)
     embed.add_field(name="!yardim", value="Komutları listeler.", inline=False)
