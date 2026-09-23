@@ -52,7 +52,6 @@ ASMACA_KATEGORILERI = {
     "matematik": ["türev", "integral", "geometri", "matris", "fonksiyon", "trigonometri", "logaritma", "olasılık", "parabol"]
 }
 
-# Kararlı ve Hatasız Milyoner Soru Havuzu (Her kategori için 5 kademeli ödül yapılandırması)
 MILYONER_VERITABANI = {
     "lol": [
         {"soru": "League of Legends oyununda 'Baron Nashor' katledildiğinde takıma hangi güçlendirme verilir?", "secenekler": ["A) Elixir of Iron", "B) Hand of Baron (Nashor Gücü)", "C) Aspect of the Dragon", "D) Crest of Cinders"], "cevap": "b"},
@@ -112,9 +111,7 @@ MILYONER_VERITABANI = {
     ]
 }
 
-# Ödül Basamakları
 ODULLER = ["1.000 TL", "10.000 TL", "50.000 TL", "250.000 TL", "1.000.000 TL"]
-
 mesaj_sayaci = 0
 
 @bot.event
@@ -501,8 +498,6 @@ async def milyoner(ctx, kategori: str = None):
         secilen_kat = random.choice(tum_kategoriler)
 
     kategori_sorulari = MILYONER_VERITABANI[secilen_kat]
-    
-    # Kategori havuzundan rastgele 5 soru seç
     secilen_tur_sorulari = random.sample(kategori_sorulari, min(5, len(kategori_sorulari)))
 
     milyoner_oyunlari[ctx.channel.id] = {
@@ -640,44 +635,28 @@ async def oneri(ctx, *, metin: str):
     await gonderilen.add_reaction("👍")
     await gonderilen.add_reaction("👎")
 
-# --- 7. SES ODASI KONTROLÜ ---
+# --- 7. SES ODASI KONTROLÜ (DÜZELTİLMİŞ !GİT KOMUTU) ---
 @bot.command(name="git")
-async def git(ctx, *, kanal_adi: str):
-    hedef_kanal = discord.utils.get(ctx.guild.voice_channels, name=kanal_adi)
-    if not hedef_kanal:
-        await ctx.send(f"❌ '{kanal_adi}' adında bir ses kanalı bulunamadı!")
+async def git(ctx, member: discord.Member):
+    if not ctx.author.voice:
+        await ctx.send("❌ Önce bir ses kanalına girmelisin!")
         return
 
-    hedef_uye = ctx.message.mentions[0] if ctx.message.mentions else ctx.author
-    if not hedef_uye.voice:
-        await ctx.send(f"❌ {hedef_uye.mention} herhangi bir ses kanalında değil!")
+    if not member.voice or not member.voice.channel:
+        await ctx.send(f"❌ {member.mention} şu an herhangi bir ses kanalında değil!")
         return
 
-    if len(hedef_kanal.members) == 0:
-        try:
-            await hedef_uye.move_to(hedef_kanal)
-            await ctx.send(f"✅ {hedef_uye.mention} boş olan **{hedef_kanal.name}** kanalına taşındı!")
-        except Exception as e:
-            await ctx.send(f"⚠️ Taşıma hatası: `{e}`")
+    hedef_kanal = member.voice.channel
+    
+    if ctx.author.voice.channel == hedef_kanal:
+        await ctx.send(f"⚠️ Zaten {member.mention} ile aynı kanaldasın!")
         return
-
-    embed = discord.Embed(
-        title="🚪 Odaya Giriş Talebi",
-        description=f"**{hedef_uye.name}**, **{hedef_kanal.name}** odasına girmek istiyor!\nOdadakilerden biri onaylamak için ✅ emojisine tıklasın.",
-        color=discord.Color.orange()
-    )
-    talep_mesaji = await ctx.send(embed=embed)
-    await talep_mesaji.add_reaction("✅")
-
-    def check(reaction, user):
-        return not user.bot and str(reaction.emoji) == "✅" and user in hedef_kanal.members
 
     try:
-        reaction, user = await bot.wait_for('reaction_add', timeout=30.0, check=check)
-        await hedef_uye.move_to(hedef_kanal)
-        await ctx.send(f"✅ **{user.name}** onay verdi ve {hedef_uye.mention}, **{hedef_kanal.name}** kanalına alındı!")
-    except asyncio.TimeoutError:
-        await ctx.send(f"⏱️ Süre doldu, **{hedef_kanal.name}** odasından kimse onay vermedi.")
+        await ctx.author.move_to(hedef_kanal)
+        await ctx.send(f"✅ Başarıyla {member.mention} kullanıcısının yanına (**{hedef_kanal.name}**) ışınlandın!")
+    except Exception as e:
+        await ctx.send(f"⚠️ Kullanıcının yanına gidilemedi. Yetkinin yeterli olduğundan emin ol. Hata: `{e}`")
 
 @bot.command(name="oda-kapat")
 async def oda_kapat(ctx):
@@ -858,9 +837,9 @@ async def yardim(ctx):
     )
 
     embed.add_field(
-        name="🚪 3. Ses Kanalı & Odalar",
+        name="🚪 3. Ses Odaları",
         value=(
-            "• `!git <kanal adı>` - Oda boşsa gider, doluysa ✅ onayı ister\n"
+            "• `!git @kullanıcı` - Belirttiğin kişinin ses kanalına ışınlanırsın\n"
             "• `!oda-kapat` - Kendi özel ses odanı kilitler\n"
             "• `!oda-aç` - Kilitli özel ses odanı açar\n"
             "• *Not: '➕ Oda Oluştur' veya '➕ Among Us Odası'na girerek özel oda açabilirsin.*"
@@ -885,7 +864,7 @@ async def yardim(ctx):
         inline=False
     )
 
-    embed.set_footer(text="Gelişmiş Discord Botu • Milyoner ve Adam Asmaca aktif!")
+    embed.set_footer(text="Gelişmiş Discord Botu • Tüm sistemler aktif ve sorunsuz!")
     await ctx.send(embed=embed)
 
 keep_alive()
