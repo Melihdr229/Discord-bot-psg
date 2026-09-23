@@ -23,6 +23,7 @@ afk_kullanicilar = {}
 uyari_veritabani = {}  
 aktif_sorular = {}     
 adam_asmaca_oyunlari = {} 
+milyoner_oyunlari = {} 
 
 OTO_CEVAPLAR = {
     "sa": "as",
@@ -43,13 +44,51 @@ GUNCEL_SORULAR = [
     {"soru": "🧠 **Günün Bilgi Sorusu:** İstanbul hangi yıl feth edilmiştir?", "cevap": "1453"}
 ]
 
-# Kategori Bazlı Adam Asmaca Kelimeleri
 ASMACA_KATEGORILERI = {
     "lol": ["yasuo", "thresh", "lee sin", "lux", "ahri", "zed", "blitzcrank", "jinx", "kled", "warwick", "sett"],
     "valorant": ["jett", "reyna", "sage", "omen", "vandal", "phantom", "cypher", "sova", "spike", "bind", "ascent"],
     "minecraft": ["diamond", "creeper", "enderman", "obsidian", "nether", "redstone", "steve", "zombie", "pickaxe", "village"],
     "tarih": ["istanbul", "malazgirt", "osmanlı", "selçuklu", "cumhuriyet", "atatürk", "çanakkale", "fatih", "milli mücadele"],
     "matematik": ["türev", "integral", "geometri", "matris", "fonksiyon", "trigonometri", "logaritma", "olasılık", "parabol"]
+}
+
+# Kim Milyoner Olmak İster Genişletilmiş Kategori ve Soruları
+MILYONER_VERITABANI = {
+    "lol": [
+        {"soru": "League of Legends oyununda 'Baron Nashor' katledildiğinde takıma hangi kalıcı güçlendirme verilir?", "secenekler": ["A) Elixir of Iron", "B) Hand of Baron (Nashor Gücü)", "C) Aspect of the Dragon", "D) Crest of Cinders"], "cevap": "b"},
+        {"soru": "Hangisi League of Legends evrelerinde bir orman (jungle) kampı değildir?", "secenekler": ["A) Kurtlar (Murk Wolves)", "B) Kayacıllar (Krugs)", "C) Ejderha (Dragon)", "D) Ejderha Yavrusu Yuvası"], "cevap": "d"},
+        {"soru": "Blitzcrank karakterinin Q yeteneğinin adı nedir?", "secenekler": ["A) Rocket Grab (Roket El)", "B) Power Fist", "C) Static Field", "D) Overdrive"], "cevap": "a"},
+        {"soru": "League of Legends'da dereceli (ranked) sistemde en yüksek liglerin başında gelen ve Ustalık (Master) ile Şampiyonluk (Challenger) arasında yer alan lig hangisidir?", "secenekler": ["A) Elmas", "B) Üstadlık (Grandmaster)", "C) Zümrüt", "D) Demir"], "cevap": "b"},
+        {"soru": "Summoner's Rift haritasında her iki takımın üssü arasında orta koridorda (Mid) karşılaşan ilk minyon dalgası kaçıncı saniyede doğar?", "secenekler": ["A) 0:00", "B) 1:05", "C) 1:30", "D) 2:00"], "cevap": "b"}
+    ],
+    "valorant": [
+        {"soru": "Valorant oyununda Spike'ı yerleştirmek (plant) normal şartlarda kaç saniye sürer?", "secenekler": ["A) 2 saniye", "B) 4 saniye", "C) 6 saniye", "D) 8 saniye"], "cevap": "b"},
+        {"soru": "Hangisi Valorant'ın 'Öncü (Initiator)' ajanlarından biri değildir?", "secenekler": ["A) Sova", "B) Skye", "C) Jett", "D) Fade"], "cevap": "c"},
+        {"soru": "Valorant'ta en yüksek rekabetçi rütbe kademesi aşağıdakilerden hangisidir?", "secenekler": ["A) Yücelik", "B) Ölümsüzlük", "C) Radiant (Radyant)", "D) Elmas"], "cevap": "c"},
+        {"soru": "Valorant oyununda silah satın alma ekranında takım arkadaşlarından para istemek için kullanılan tuş kombinasyonu veya terimin adı nedir?", "secenekler": ["A) Request (İstek)", "B) Economy", "C) Drop", "D) Buy"], "cevap": "a"},
+        {"soru": "Ajan Brimstone hangi sınıfa (Role) aittir?", "secenekler": ["A) Düellocu", "B) Kontrol Uzmanı (Controller)", "C) Öncü", "D) Gözcü"], "cevap": "b"}
+    ],
+    "tarih": [
+        {"soru": "Osmanlı İmparatorluğu'nun kuruluş yılı resmi olarak tarihçiler tarafından genellikle hangi yıl kabul edilir?", "secenekler": ["A) 1299", "B) 1453", "C) 1071", "D) 1923"], "cevap": "a"},
+        {"soru": "Mustafa Kemal Atatürk'e 'Gazi' unvanı hangi savaştan sonra verilmiştir?", "secenekler": ["A) Çanakkale Savaşı", "B) Sakarya Meydan Muharebesi", "C) Büyük Taarruz", "D) I. İnönü Savaşı"], "cevap": "b"},
+        {"soru": "İstanbul kaç yılında Fatih Sultan Mehmet tarafından fethedilmiştir?", "secenekler": ["A) 1299", "B) 1453", "C) 1517", "D) 1923"], "cevap": "b"},
+        {"soru": "Türk tarihinde 'Yurt Açan Savaş' olarak bilinen ve Anadolu'nun kapılarını Türklere açan savaş hangisidir?", "secenekler": ["A) Miryokefalon Savaşı", "B) Malazgirt Savaşı", "C) Dandanakan Savaşı", "D) Pasinler Savaşı"], "cevap": "b"},
+        {"soru": "Türkiye Cumhuriyeti'nin ilk başbakanı kimdir?", "secenekler": ["A) İsmet İnönü", "B) Celâl Bayar", "C) Fevzi Çakmak", "D) Kazım Karabekir"], "cevap": "a"}
+    ],
+    "coğrafya": [
+        {"soru": "Türkiye'nin yüz ölçümü bakımından en büyük ili hangisidir?", "secenekler": ["A) Ankara", "B) Sivas", "C) Konya", "D) Van"], "cevap": "c"},
+        {"soru": "Dünyanın en uzun nehirleri arasında gösterilen Nil Nehri hangi kıtada yer alır?", "secenekler": ["A) Asya", "B) Afrika", "C) Güney Amerika", "D) Avrupa"], "cevap": "b"},
+        {"soru": "Türkiye'nin en yüksek dağı olan Ağrı Dağı hangi ilimiz sınırları içerisindedir?", "secenekler": ["A) Erzurum", "B) Van", "C) Iğdır / Ağrı", "D) Kars"], "cevap": "c"},
+        {"soru": "Hangi kıta yüz ölçümü bakımından dünyanın en küçük kıtasıdır?", "secenekler": ["A) Avrupa", "B) Antarktika", "C) Okyanusya (Avustralya)", "D) Güney Amerika"], "cevap": "c"},
+        {"soru": "Dünyanın en derin okyanus çukuru olan 'Mariana Çukuru' hangi okyanusta yer alır?", "secenekler": ["A) Atlas Okyanusu", "B) Hint Okyanusu", "C) Pasifik (Büyük) Okyanus", "D) Arktik Okyanusu"], "cevap": "c"}
+    ],
+    "müzik": [
+        {"soru": "Müzik notalarında 'sol anahtarı' portenin (dizek) kaçıncı çizgisinden başlar?", "secenekler": ["A) 1. Çizgi", "B) 2. Çizgi", "C) 3. Çizgi", "D) 4. Çizgi"], "cevap": "b"},
+        {"soru": "Türkiye'de 'Dönence', 'Aldırma Gönül' gibi unutulmaz eserlere imza atmış efsanevi Anadolu Rock grubu hangisidir?", "secenekler": ["A) Duman", "B) Moğollar", "C) MFÖ", "D) Athena"], "cevap": "b"},
+        {"soru": "Klasik batı müziğinde 'en yavaş' tempo terimi aşağıdakilerden hangisidir?", "secenekler": ["A) Allegro", "B) Andante", "C) Largo", "D) Presto"], "cevap": "c"},
+        {"soru": "Aşağıdaki enstrümanlardan hangisi yaylı çalgılar grubuna girer?", "secenekler": ["A) Flüt", "B) Viyolonsel (Çello)", "C) Klarnet", "D) trompet"], "cevap": "b"},
+        {"soru": "Dünyaca ünlü 'Bohemian Rhapsody' şarkısı hangi efsanevi müzik grubuna aittir?", "secenekler": ["A) The Beatles", "B) Pink Floyd", "C) Queen", "D) Led Zeppelin"], "cevap": "c"}
+    ]
 }
 
 mesaj_sayaci = 0
@@ -313,6 +352,16 @@ async def on_message(message):
 
     mesaj_metni = message.content.lower().strip()
     
+    # Kim Milyoner Olmak İster Cevap Kontrolü (a, b, c, d)
+    if message.channel.id in milyoner_oyunlari and mesaj_metni in ["a", "b", "c", "d"]:
+        oyun = milyoner_oyunlari[message.channel.id]
+        if mesaj_metni == oyun["dogru_cevap"]:
+            await message.channel.send(f"🎉 Tebrikler {message.author.mention}, doğru bildin! **Çok akıllısın maşallah!** 👑 Kazanılan Ödül: **{oyun['odul']}**")
+            del milyoner_oyunlari[message.channel.id]
+        else:
+            await message.channel.send(f"❌ Yanlış cevap! Maalesef yarışmadan elendin. Doğru cevap: **{oyun['dogru_cevap'].upper()}** şıkkıydı.")
+            del milyoner_oyunlari[message.channel.id]
+
     # Adam Asmaca Harf Tahmini Kontrolü
     if message.channel.id in adam_asmaca_oyunlari and len(mesaj_metni) == 1 and mesaj_metni.isalpha():
         oyun = adam_asmaca_oyunlari[message.channel.id]
@@ -396,7 +445,37 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-# --- 5. ADAM ASMACA KOMUTU (!adam-asmaca [kategori]) ---
+# --- 5. KİM MİLYONER OLMAK İSTER KOMUTU (!milyoner [kategori]) ---
+@bot.command(name="milyoner")
+async def milyoner(ctx, kategori: str = None):
+    if ctx.channel.id in milyoner_oyunlari:
+        await ctx.send("⚠️ Bu kanalda zaten devam eden bir Milyoner yarışması var!")
+        return
+
+    kategori = kategori.lower() if kategori else None
+    tum_kategoriler = list(MILYONER_VERITABANI.keys())
+
+    if kategori and kategori in tum_kategoriler:
+        secilen_kat = kategori
+    else:
+        secilen_kat = random.choice(tum_kategoriler)
+
+    soru_objesi = random.choice(MILYONER_VERITABANI[secilen_kat])
+    
+    milyoner_oyunlari[ctx.channel.id] = {
+        "dogru_cevap": soru_objesi["cevap"],
+        "odul": "1.000.000 TL"
+    }
+
+    secenekler_metni = "\n".join(soru_objesi["secenekler"])
+    embed = discord.Embed(
+        title=f"💰 Kim Milyoner Olmak İster? ({secilen_kat.upper()})",
+        description=f"**Soru:** {soru_objesi['soru']}\n\n{secenekler_metni}\n\n*Cevap vermek için sohbetten doğrudan şıkkın harfini yaz (A, B, C, D)*",
+        color=discord.Color.gold()
+    )
+    await ctx.send(embed=embed)
+
+# --- 6. ADAM ASMACA KOMUTU (!adam-asmaca [kategori]) ---
 @bot.command(name="adam-asmaca")
 async def adam_asmaca(ctx, kategori: str = None):
     if ctx.channel.id in adam_asmaca_oyunlari:
@@ -409,7 +488,6 @@ async def adam_asmaca(ctx, kategori: str = None):
         secilen_kelime = random.choice(ASMACA_KATEGORILERI[kategori])
         kategori_adi = kategori.upper()
     else:
-        # Kategori belirtilmezse rastgele bir kategoriden seç
         tum_kategoriler = list(ASMACA_KATEGORILERI.keys())
         rastgele_kat = random.choice(tum_kategoriler)
         secilen_kelime = random.choice(ASMACA_KATEGORILERI[rastgele_kat])
@@ -429,7 +507,7 @@ async def adam_asmaca(ctx, kategori: str = None):
     )
     await ctx.send(embed=embed)
 
-# --- 6. OTOMATİK İSTATİSTİK KURULUM KOMUTU (!kurulum) ---
+# --- 7. OTOMATİK İSTATİSTİK KURULUM KOMUTU (!kurulum) ---
 @bot.command(name="kurulum")
 @commands.has_permissions(administrator=True)
 async def kurulum(ctx):
@@ -449,7 +527,7 @@ async def kurulum(ctx):
     
     await ctx.send("✅ Sunucu istatistik kanalları başarıyla kuruldu ve sayaçlar aktif edildi!")
 
-# --- 7. YARDIM MENÜSÜ ---
+# --- 8. YARDIM MENÜSÜ ---
 @bot.command(name="yardim")
 async def yardim(ctx):
     embed = discord.Embed(
@@ -457,7 +535,8 @@ async def yardim(ctx):
         description="Sunucuyu yönetmek ve eğlenmek için kullanabileceğin tüm komutlar:",
         color=discord.Color.green()
     )
-    embed.add_field(name="!adam-asmaca [lol/valorant/minecraft/tarih/matematik]", value="Belirtilen kategoride (veya rastgele) Adam Asmaca başlatır.", inline=False)
+    embed.add_field(name="!milyoner [lol/valorant/tarih/coğrafya/müzik]", value="Kim Milyoner Olmak İster yarışması başlatır.", inline=False)
+    embed.add_field(name="!adam-asmaca [lol/valorant/minecraft/tarih/matematik]", value="Adam Asmaca oyunu başlatır.", inline=False)
     embed.add_field(name="!kurulum", value="Sunucu istatistik kanallarını otomatik kurar (Yönetici).", inline=False)
     embed.add_field(name="!yardim", value="Komutları listeler.", inline=False)
     embed.add_field(name="!git <ses kanalı>", value="Boşsa direkt gider, doluysa odadakilerin ✅ onayından sonra seni içeri alır.", inline=False)
@@ -483,7 +562,7 @@ async def yardim(ctx):
     embed.add_field(name="!kick / !ban", value="Üye atar/yasaklar (Yönetici).", inline=False)
     await ctx.send(embed=embed)
 
-# --- 8. SES KANALINA GİTME VE EMOJİ ONAY SİSTEMİ (!git) ---
+# --- 9. SES KANALINA GİTME VE EMOJİ ONAY SİSTEMİ (!git) ---
 @bot.command(name="git")
 async def git(ctx, *, kanal_adi: str):
     hedef_kanal = discord.utils.get(ctx.guild.voice_channels, name=kanal_adi)
@@ -524,7 +603,7 @@ async def git(ctx, *, kanal_adi: str):
     except asyncio.TimeoutError:
         await ctx.send(f"⏱️ Süre doldu, **{hedef_kanal.name}** odasından kimse onay vermedi.")
 
-# --- 9. ÖZEL ODA VE SAYAÇ KOMUTLARI ---
+# --- 10. ÖZEL ODA VE SAYAÇ KOMUTLARI ---
 @bot.command(name="oda-kapat")
 async def oda_kapat(ctx):
     if ctx.author.voice and ctx.author.voice.channel:
@@ -569,7 +648,7 @@ async def autorol_ayarla(ctx, *, rol_adi: str):
     else:
         await ctx.send(f"❌ '{rol_adi}' adında bir rol bulunamadı.")
 
-# --- 10. DİĞER KOMUTLAR ---
+# --- 11. DİĞER KOMUTLAR ---
 @bot.command(name="ses-seviye")
 async def ses_seviye(ctx, member: discord.Member = None):
     member = member or ctx.author
