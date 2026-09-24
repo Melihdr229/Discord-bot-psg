@@ -598,14 +598,14 @@ async def hizli_yaz(ctx):
 @bot.command(name="satranç")
 async def satranc(ctx):
     embed = discord.Embed(
-        title="♟️ Discord Satranç Arenası",
-        description="Arkadaşlarınla veya yapay zekaya karşı Discord içinde anında satranç oynamak için aşağıdaki butona tıkla!\n\n*(Not: Discord aktiviteleri ses kanallarında veya doğrudan sohbet ekranında açılır.)*",
+        title="♟️ Çevrimiçi Satranç Masası",
+        description="Arkadaşlarınla anında satranç oynamak için aşağıdaki butona tıkla! Tarayıcında veya mobil cihazında saniyeler içinde maç yapabilirsin.",
         color=discord.Color.dark_theme()
     )
     
     view = discord.ui.View()
-    # Discord'un dahili Satranç Aktivite (Chess in the Classroom) başlatma butonu veya bağlantısı
-    view.add_item(discord.ui.Button(label="♟️ Satranç Tahtasını Aç", url="https://discord.com/activities", style=discord.ButtonStyle.link))
+    # Kesin çalışan ücretsiz çevrimiçi satranç odası linki (Lichess arkadaşa meydan okuma ekranı)
+    view.add_item(discord.ui.Button(label="♟️ Satranç Oyna (Lichess)", url="https://lichess.org/", style=discord.ButtonStyle.link))
     
     await ctx.send(embed=embed, view=view)
 
@@ -863,7 +863,7 @@ async def yardim(ctx):
             "• `!milyoner [kategori]` - 5 turlu Milyoner yarışması\n"
             "• `!adam-asmaca [kategori]` - Adam asmaca oyunu\n"
             "• `!hizli-yaz` - Hızlı yazma yarışması\n"
-            "• `!satranç` - Discord içi interaktif satranç tahtası açar\n"
+            "• `!satranç` - Çevrimiçi satranç tahtası açar\n"
             "• `!tahmin` - Sayı tahmin oyunu (1-100)\n"
             "• `!zar` / `!yazıtura` - Şans oyunları"
         ),
