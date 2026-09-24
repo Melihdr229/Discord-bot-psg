@@ -24,7 +24,7 @@ uyari_veritabani = {}
 aktif_sorular = {}     
 adam_asmaca_oyunlari = {} 
 milyoner_oyunlari = {} 
-hizli_yaz_oyunlari = {} # Hızlı yazma yarışması aktiflik takibi
+hizli_yaz_oyunlari = {} 
 soru_kanallari = {} 
 
 OTO_CEVAPLAR = {
@@ -595,6 +595,20 @@ async def hizli_yaz(ctx):
     )
     await ctx.send(embed=embed)
 
+@bot.command(name="satranç")
+async def satranc(ctx):
+    embed = discord.Embed(
+        title="♟️ Discord Satranç Arenası",
+        description="Arkadaşlarınla veya yapay zekaya karşı Discord içinde anında satranç oynamak için aşağıdaki butona tıkla!\n\n*(Not: Discord aktiviteleri ses kanallarında veya doğrudan sohbet ekranında açılır.)*",
+        color=discord.Color.dark_theme()
+    )
+    
+    view = discord.ui.View()
+    # Discord'un dahili Satranç Aktivite (Chess in the Classroom) başlatma butonu veya bağlantısı
+    view.add_item(discord.ui.Button(label="♟️ Satranç Tahtasını Aç", url="https://discord.com/activities", style=discord.ButtonStyle.link))
+    
+    await ctx.send(embed=embed, view=view)
+
 @bot.command(name="tahmin")
 async def tahmin(ctx):
     aktif_tahminler[ctx.channel.id] = random.randint(1, 100)
@@ -846,9 +860,10 @@ async def yardim(ctx):
     embed.add_field(
         name="🎮 1. Oyun & Eğlence",
         value=(
-            "• `!milyoner [lol/valorant/tarih/coğrafya/müzik/futbol/genel/teknoloji]` - 5 turlu Milyoner yarışması\n"
+            "• `!milyoner [kategori]` - 5 turlu Milyoner yarışması\n"
             "• `!adam-asmaca [kategori]` - Adam asmaca oyunu\n"
             "• `!hizli-yaz` - Hızlı yazma yarışması\n"
+            "• `!satranç` - Discord içi interaktif satranç tahtası açar\n"
             "• `!tahmin` - Sayı tahmin oyunu (1-100)\n"
             "• `!zar` / `!yazıtura` - Şans oyunları"
         ),
@@ -898,7 +913,7 @@ async def yardim(ctx):
         inline=False
     )
 
-    embed.set_footer(text="Gelişmiş Discord Botu • Hızlı yazma ve 3 saatlik soru sistemi aktif!")
+    embed.set_footer(text="Gelişmiş Discord Botu • Satranç arenası aktif!")
     await ctx.send(embed=embed)
 
 keep_alive()
