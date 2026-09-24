@@ -602,11 +602,19 @@ async def satranc(ctx):
         description="Arkadaşlarınla anında satranç oynamak için aşağıdaki butona tıkla! Tarayıcında veya mobil cihazında saniyeler içinde maç yapabilirsin.",
         color=discord.Color.dark_theme()
     )
-    
     view = discord.ui.View()
-    # Kesin çalışan ücretsiz çevrimiçi satranç odası linki (Lichess arkadaşa meydan okuma ekranı)
     view.add_item(discord.ui.Button(label="♟️ Satranç Oyna (Lichess)", url="https://lichess.org/", style=discord.ButtonStyle.link))
-    
+    await ctx.send(embed=embed, view=view)
+
+@bot.command(name="gartic")
+async def gartic(ctx):
+    embed = discord.Embed(
+        title="🎨 Gartic Phone Odası",
+        description="Arkadaşlarınla eğlenceli çizim ve telefon kulübesi oyunu oynamak için hemen özel oda kur!",
+        color=discord.Color.orange()
+    )
+    view = discord.ui.View()
+    view.add_item(discord.ui.Button(label="🎨 Gartic Phone Odası Kur", url="https://garticphone.com/tr", style=discord.ButtonStyle.link))
     await ctx.send(embed=embed, view=view)
 
 @bot.command(name="tahmin")
@@ -864,6 +872,7 @@ async def yardim(ctx):
             "• `!adam-asmaca [kategori]` - Adam asmaca oyunu\n"
             "• `!hizli-yaz` - Hızlı yazma yarışması\n"
             "• `!satranç` - Çevrimiçi satranç tahtası açar\n"
+            "• `!gartic` - Gartic Phone özel oda kurma linki atar\n"
             "• `!tahmin` - Sayı tahmin oyunu (1-100)\n"
             "• `!zar` / `!yazıtura` - Şans oyunları"
         ),
@@ -913,7 +922,7 @@ async def yardim(ctx):
         inline=False
     )
 
-    embed.set_footer(text="Gelişmiş Discord Botu • Satranç arenası aktif!")
+    embed.set_footer(text="Gelişmiş Discord Botu • Gartic Phone entegrasyonu aktif!")
     await ctx.send(embed=embed)
 
 keep_alive()
