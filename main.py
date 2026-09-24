@@ -24,6 +24,7 @@ uyari_veritabani = {}
 aktif_sorular = {}     
 adam_asmaca_oyunlari = {} 
 milyoner_oyunlari = {} 
+soru_kanallari = {} # Sunucu bazlı 3 saatlik soru kanalı hafızası
 
 OTO_CEVAPLAR = {
     "sa": "as",
@@ -35,7 +36,6 @@ YASAKLI_KELIMELER = [
     "küfür1", "küfür2"
 ]
 
-# 3 Saatte Bir Sorulacak Zenginleştirilmiş Soru Havuzu
 SAATLIK_BILGI_SORULARI = [
     {"soru": "Hangi futbol takımı, Şampiyonlar Ligi'ni en çok kazanan kulüptür?", "cevap": "real madrid"},
     {"soru": "Türkiye'nin yüz ölçümü bakımından en büyük şehri hangisidir?", "cevap": "konya"},
@@ -116,7 +116,7 @@ MILYONER_VERITABANI = {
     ]
 }
 
-ODULLer = ["1.000 TL", "10.000 TL", "50.000 TL", "250.000 TL", "1.000.000 TL"]
+ODULLER = ["1.000 TL", "10.000 TL", "50.000 TL", "250.000 TL", "1.000.000 TL"]
 
 @bot.event
 async def on_ready():
@@ -147,24 +147,20 @@ async def istatistik_guncelle():
                 except:
                     pass
 
-# --- 0.1. HER 3 SAATTE BİR BİLGİ SORUSU GÖNDERİCİ ---
+# --- 0.1. HER 3 SAATTE BİR BELİRLENEN KANALA BİLGİ SORUSU GÖNDERİCİ ---
 @tasks.loop(hours=3)
 async def saatlik_soru_gonderici():
     secilen = random.choice(SAATLIK_BILGI_SORULARI)
-    for guild in bot.guilds:
-        hedef_kanal = discord.utils.get(guild.text_channels, name="sohbet") or discord.utils.get(guild.text_channels, name="genel")
-        if not hedef_kanal:
-            for ch in guild.text_channels:
-                if ch.permissions_for(guild.me).send_messages:
-                    hedef_kanal = ch
-                    break
-        
-        if hedef_kanal:
-            aktif_sorular[hedef_kanal.id] = secilen["cevap"]
-            try:
-                await hedef_kanal.send(f"⏰ **3 Saatte Bir Gelen Bilgi Zamanı!**\n🧠 {secilen['soru']}\n*(Doğru cevabı yazarak 'Çok akıllısın maşallah!' övgüsünü kazan!)*")
-            except:
-                pass
+    for guild_id, kanal_id in soru_kanallari.items():
+        guild = bot.get_guild(guild_id)
+        if guild:
+            kanal = guild.get_channel(kanal_id)
+            if kanal:
+                aktif_sorular[kanal.id] = secilen["cevap"]
+                try:
+                    await kanal.send(f"⏰ **3 Saatte Bir Gelen Bilgi Zamanı!**\n🧠 {secilen['soru']}\n*(Doğru cevabı yazarak 'Çok akıllısın maşallah!' övgüsünü kazan!)*")
+                except:
+                    pass
 
 @saatlik_soru_gonderici.before_loop
 async def before_saatlik_soru():
@@ -416,7 +412,7 @@ async def on_message(message):
             else:
                 sonraki_soru = oyun["sorular"][oyun["tur"]]
                 secenekler_metni = "\n".join(sonraki_soru["secenekler"])
-                odul_miktari = ODULLer[oyun["tur"]]
+                odul_miktari = ODULLER[oyun["tur"]]
                 embed = discord.Embed(
                     title=f"💰 Milyoner Yarışması | Soru {oyun['tur'] + 1} / 5",
                     description=f"✅ **Tebrikler, doğru bildin!** Sıradaki Ödül: **{odul_miktari}**\n\n**Soru:** {sonraki_soru['soru']}\n\n{secenekler_metni}\n\n*Cevap vermek için şıkkın harfini yaz (A, B, C, D)*",
@@ -532,7 +528,7 @@ async def milyoner(ctx, kategori: str = None):
     
     embed = discord.Embed(
         title=f"💰 Kim Milyoner Olmak İster? ({secilen_kat.upper()})",
-        description=f"🎯 Yarışmacı: {ctx.author.mention}\n1. Soru Ödülü: **{ODULLer[0]}**\n\n**Soru:** {ilk_soru['soru']}\n\n{secenekler_metni}\n\n*Cevap vermek için doğrudan şıkkın harfini yaz (A, B, C, D)*",
+        description=f"🎯 Yarışmacı: {ctx.author.mention}\n1. Soru Ödülü: **{ODULLER[0]}**\n\n**Soru:** {ilk_soru['soru']}\n\n{secenekler_metni}\n\n*Cevap vermek için doğrudan şıkkın harfini yaz (A, B, C, D)*",
         color=discord.Color.gold()
     )
     await ctx.send(embed=embed)
@@ -716,6 +712,12 @@ async def kurulum(ctx):
     await guild.create_voice_channel(f"🤖 Bot Sayısı: {bot_sayisi}", category=kategori, overwrites=overwrites)
     await ctx.send("✅ Sunucu istatistik kanalları başarıyla kuruldu ve sayaçlar aktif edildi!")
 
+@bot.command(name="3saatliksoru")
+@commands.has_permissions(administrator=True)
+async def saatlik_soru_kanal_ayarla(ctx, kanal: discord.TextChannel):
+    soru_kanallari[ctx.guild.id] = kanal.id
+    await ctx.send(f"✅ 3 saatlik bilgi sorularının gönderileceği kanal başarıyla {kanal.mention} olarak ayarlandı!")
+
 @bot.command(name="autorol-ayarla")
 @commands.has_permissions(administrator=True)
 async def autorol_ayarla(ctx, *, rol_adi: str):
@@ -871,6 +873,7 @@ async def yardim(ctx):
     embed.add_field(
         name="🛠️ 4. Yönetim & Yetkili Komutları",
         value=(
+            "• `!3saatliksoru #kanal` - 3 saatlik soruların atılacağı kanalı ayarlar (Yönetici)\n"
             "• `!kurulum` - İstatistik sayaç kanallarını kurar\n"
             "• `!autorol-ayarla <rol>` - Yeni gelenlere otomatik rol verir\n"
             "• `!çekiliş <saniye> <ödül>` - Ödüllü çekiliş başlatır\n"
@@ -885,7 +888,7 @@ async def yardim(ctx):
         inline=False
     )
 
-    embed.set_footer(text="Gelişmiş Discord Botu • Her 3 saatte bir otomatik soru aktif!")
+    embed.set_footer(text="Gelişmiş Discord Botu • 3 saatlik sorular komutla ayarlanır!")
     await ctx.send(embed=embed)
 
 keep_alive()
