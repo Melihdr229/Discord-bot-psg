@@ -24,7 +24,8 @@ uyari_veritabani = {}
 aktif_sorular = {}     
 adam_asmaca_oyunlari = {} 
 milyoner_oyunlari = {} 
-soru_kanallari = {} # Sunucu bazlı 3 saatlik soru kanalı hafızası
+hizli_yaz_oyunlari = {} # Hızlı yazma yarışması aktiflik takibi
+soru_kanallari = {} 
 
 OTO_CEVAPLAR = {
     "sa": "as",
@@ -56,6 +57,14 @@ ASMACA_KATEGORILERI = {
     "tarih": ["istanbul", "malazgirt", "osmanlı", "selçuklu", "cumhuriyet", "atatürk", "çanakkale", "fatih", "milli mücadele"],
     "matematik": ["türev", "integral", "geometri", "matris", "fonksiyon", "trigonometri", "logaritma", "olasılık", "parabol"]
 }
+
+HIZLI_YAZ_METINLERI = [
+    "discord sunucusunun en hizli ve en dikkatli yazari kim?",
+    "programlama ogrenmek sabir ve surekli pratik gerektirir.",
+    "yapay zeka teknolojileri gelecegin dunyasini sekillendiriyor.",
+    "kim milyoner olmak ister yarismasinda buyuk odule ulasabilecek misin?",
+    "hizli yazma yarismasinda parmaklarini konusturma vakti geldi!"
+]
 
 MILYONER_VERITABANI = {
     "lol": [
@@ -147,7 +156,7 @@ async def istatistik_guncelle():
                 except:
                     pass
 
-# --- 0.1. HER 3 SAATTE BİR BELİRLENEN KANALA BİLGİ SORUSU GÖNDERİCİ ---
+# --- 0.1. HER 3 SAATTE BİR BİLGİ SORUSU GÖNDERİCİ ---
 @tasks.loop(hours=3)
 async def saatlik_soru_gonderici():
     secilen = random.choice(SAATLIK_BILGI_SORULARI)
@@ -397,6 +406,13 @@ async def on_message(message):
 
     mesaj_metni = message.content.lower().strip()
     
+    # Hızlı Yazma Yarışması Kontrolü
+    if message.channel.id in hizli_yaz_oyunlari:
+        hedef_cumle = hizli_yaz_oyunlari[message.channel.id]
+        if message.content.strip() == hedef_cumle:
+            await message.channel.send(f"🏆 Tebrikler {message.author.mention}! Cümleyi en hızlı ve hatasız yazarak yarışı kazandın! **Çok akıllısın maşallah!** 👑✨")
+            del hizli_yaz_oyunlari[message.channel.id]
+
     # Kim Milyoner Olmak İster 5 Turlu Yarışma Kontrolü
     if message.channel.id in milyoner_oyunlari and mesaj_metni in ["a", "b", "c", "d"]:
         oyun = milyoner_oyunlari[message.channel.id]
@@ -563,31 +579,26 @@ async def adam_asmaca(ctx, kategori: str = None):
     )
     await ctx.send(embed=embed)
 
+@bot.command(name="hizli-yaz")
+async def hizli_yaz(ctx):
+    if ctx.channel.id in hizli_yaz_oyunlari:
+        await ctx.send("⚠️ Bu kanalda zaten devam eden bir Hızlı Yazma yarışması var!")
+        return
+
+    secilen_cumle = random.choice(HIZLI_YAZ_METINLERI)
+    hizli_yaz_oyunlari[ctx.channel.id] = secilen_cumle
+
+    embed = discord.Embed(
+        title="⚡ Hızlı Yazma Yarışması Başladı!",
+        description=f"Aşağıdaki cümleyi **en hızlı ve hatasız şekilde** klavyeden yazıp gönderen kazanır!\n\n> `{secilen_cumle}`",
+        color=discord.Color.blurple()
+    )
+    await ctx.send(embed=embed)
+
 @bot.command(name="tahmin")
 async def tahmin(ctx):
     aktif_tahminler[ctx.channel.id] = random.randint(1, 100)
     await ctx.send("🎮 Sayı tahmin oyunu başladı (1-100)!")
-
-@bot.command(name="kadro-kur")
-async def kadro_kur(ctx, kategori: str = "genel"):
-    kategori = kategori.lower()
-    if kategori == "kaleci":
-        desc = "**9 TL:** Neuer, Buffon, Courtois\n**1 TL:** Altay, Uğurcan"
-    elif kategori == "defans":
-        desc = "**9 TL:** Maldini, Ramos\n**1 TL:** Maguire, Çağlar"
-    elif kategori == "orta":
-        desc = "**9 TL:** Zidane, Iniesta, Modric\n**1 TL:** İsmail Yüksek"
-    elif kategori == "forvet":
-        desc = "**9 TL:** Messi, Ronaldo, Pelé\n**1 TL:** Cenk Tosun"
-    else:
-        desc = "20 TL bütçen var! Pozisyonlar: `!kadro-kur kaleci/defans/orta/forvet`"
-    await ctx.send(embed=discord.Embed(title="⚽ Futbolcu Havuzu", description=desc, color=discord.Color.dark_green()))
-
-@bot.command(name="rastgele-kadro")
-async def rastgele_kadro(ctx):
-    yildizlar = ["Messi", "Ronaldo (R9)", "Pelé", "Maradona", "Zidane", "Iniesta"]
-    secilenler = random.sample(yildizlar, min(5, len(yildizlar)))
-    await ctx.send(embed=discord.Embed(title="🎲 Rastgele Kadro", description="\n".join([f"• {oyuncu}" for oyuncu in secilenler]), color=discord.Color.orange()))
 
 @bot.command(name="zar")
 async def zar(ctx):
@@ -837,9 +848,8 @@ async def yardim(ctx):
         value=(
             "• `!milyoner [lol/valorant/tarih/coğrafya/müzik/futbol/genel/teknoloji]` - 5 turlu Milyoner yarışması\n"
             "• `!adam-asmaca [kategori]` - Adam asmaca oyunu\n"
+            "• `!hizli-yaz` - Hızlı yazma yarışması\n"
             "• `!tahmin` - Sayı tahmin oyunu (1-100)\n"
-            "• `!kadro-kur [pozisyon]` - 20 TL bütçeli futbol kadro oyunu\n"
-            "• `!rastgele-kadro` - Rastgele 11 kurar\n"
             "• `!zar` / `!yazıtura` - Şans oyunları"
         ),
         inline=False
@@ -888,7 +898,7 @@ async def yardim(ctx):
         inline=False
     )
 
-    embed.set_footer(text="Gelişmiş Discord Botu • 3 saatlik sorular komutla ayarlanır!")
+    embed.set_footer(text="Gelişmiş Discord Botu • Hızlı yazma ve 3 saatlik soru sistemi aktif!")
     await ctx.send(embed=embed)
 
 keep_alive()
