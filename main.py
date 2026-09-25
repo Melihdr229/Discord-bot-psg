@@ -519,7 +519,8 @@ async def on_message(message):
 # --- 5. OYUN & SPOR KOMUTLARI ---
 @bot.command(name="skor")
 async def skor(ctx):
-    url = "https://api.football-data.org/v4/matches?competitions=CL,TR1"
+    # CL: Şampiyonlar Ligi, TR1: Süper Lig, EC: Avrupa Şampiyonası (Milli Maçlar)
+    url = "https://api.football-data.org/v4/matches?competitions=CL,TR1,EC"
     headers = {"X-Auth-Token": os.environ.get("FOOTBALL_API_KEY", "")}
     
     async with aiohttp.ClientSession() as session:
@@ -530,10 +531,10 @@ async def skor(ctx):
                     matches = data.get("matches", [])
                     
                     if not matches:
-                        await ctx.send("ℹ️ Şu an Süper Lig veya Şampiyonlar Ligi'nde gösterilecek güncel/canlı maç bulunamadı.")
+                        await ctx.send("ℹ️ Şu an Süper Lig, Şampiyonlar Ligi veya Milli maç takviminde gösterilecek güncel maç bulunamadı.")
                         return
                     
-                    embed = discord.Embed(title="⚽ Süper Lig & Avrupa Maç Skorları", color=discord.Color.green())
+                    embed = discord.Embed(title="⚽ Süper Lig, Avrupa & Milli Takım Maçları", color=discord.Color.green())
                     count = 0
                     for match in matches:
                         comp = match.get("competition", {}).get("name", "Lig")
@@ -561,7 +562,7 @@ async def skor(ctx):
                 else:
                     await ctx.send("⚠️ API anahtarı (FOOTBALL_API_KEY) bulunamadı veya geçersiz! Lütfen Replit Secrets kısmından ekleyin.")
         except Exception as e:
-            await ctx.send(f"⚠️ Skorlar çekilirken bir hata oluştu: `{e}`")
+            await ctx.send(f"⚠️ Maç skorları çekilirken bir hata oluştu: `{e}`")
 
 @bot.command(name="milyoner")
 async def milyoner(ctx, kategori: str = None):
@@ -915,7 +916,7 @@ async def yardim(ctx):
     embed.add_field(
         name="⚽ 1. Spor & Skorlar",
         value=(
-            "• `!skor` - Süper Lig ve Şampiyonlar Ligi anlık maç skorlarını gösterir"
+            "• `!skor` - Süper Lig, Şampiyonlar Ligi ve Milli Maç skorlarını gösterir"
         ),
         inline=False
     )
@@ -977,7 +978,7 @@ async def yardim(ctx):
         inline=False
     )
 
-    embed.set_footer(text="Gelişmiş Discord Botu • Süper Lig ve Avrupa skor takibi aktif!")
+    embed.set_footer(text="Gelişmiş Discord Botu • Süper Lig, Şampiyonlar Ligi ve Milli Maçlar aktif!")
     await ctx.send(embed=embed)
 
 keep_alive()
