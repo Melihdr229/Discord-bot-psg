@@ -519,8 +519,8 @@ async def on_message(message):
 # --- 5. OYUN & SPOR KOMUTLARI ---
 @bot.command(name="skor")
 async def skor(ctx):
-    # Tarih filtresi kaldırıldı, böylece sistem hem gelecek maçları hem de en güncel fikstürü getirir
-    url = "https://api.football-data.org/v4/matches?competitions=CL,TR1,EC"
+    # Lig filtresini kaldırıp doğrudan tüm genel maç akışını çekiyoruz ki boş dönme ihtimali ortadan kalksın
+    url = "https://api.football-data.org/v4/matches"
     headers = {"X-Auth-Token": os.environ.get("FOOTBALL_API_KEY", "")}
     
     async with aiohttp.ClientSession() as session:
@@ -531,21 +531,20 @@ async def skor(ctx):
                     matches = data.get("matches", [])
                     
                     if not matches:
-                        await ctx.send("ℹ️ Şu an gösterilecek maç takvimi bulunamadı.")
+                        await ctx.send("ℹ️ Şu an sistemde listelenecek maç verisi bulunamadı.")
                         return
                     
-                    embed = discord.Embed(title="⚽ Süper Lig, Avrupa & Milli Maçlar (Fikstür)", color=discord.Color.green())
+                    embed = discord.Embed(title="⚽ Güncel Futbol Maçları & Fikstür", color=discord.Color.green())
                     count = 0
                     for match in matches:
-                        comp = match.get("competition", {}).get("name", "Lig")
+                        comp = match.get("competition", {}).get("name", "Futbol Maçı")
                         home = match['homeTeam']['name']
                         away = match['awayTeam']['name']
                         score_home = match['score']['fullTime']['home']
                         score_away = match['score']['fullTime']['away']
                         status = match['status']
-                        utc_date = match.get('utcDate', '') # Örn: 2026-06-11T19:00:00Z
+                        utc_date = match.get('utcDate', '')
                         
-                        # Tarih ve saat formatını düzenle
                         tarih_saat = "Yakında"
                         if len(utc_date) >= 16:
                             gun = utc_date[8:10]
@@ -574,7 +573,8 @@ async def skor(ctx):
                     
                     await ctx.send(embed=embed)
                 else:
-                    await ctx.send("⚠️ API anahtarı (FOOTBALL_API_KEY) bulunamadı veya geçersiz! Lütfen Replit Secrets kısmından ekleyin.")
+                    text_resp = await response.text()
+                    await ctx.send(f"⚠️ API Hatası! Kod: `{response.status}` | Detay: `{text_resp}`")
         except Exception as e:
             await ctx.send(f"⚠️ Maçlar çekilirken bir hata oluştu: `{e}`")
 
@@ -930,7 +930,7 @@ async def yardim(ctx):
     embed.add_field(
         name="⚽ 1. Spor & Skorlar",
         value=(
-            "• `!skor` - Süper Lig, Şampiyonlar Ligi ve Milli Maç fikstür/skorlarını gösterir"
+            "• `!skor` - Güncel futbol maçlarını ve fikstürü gösterir"
         ),
         inline=False
     )
@@ -992,7 +992,7 @@ async def yardim(ctx):
         inline=False
     )
 
-    embed.set_footer(text="Gelişmiş Discord Botu • Fikstür ve gelecek maçlar aktif!")
+    embed.set_footer(text="Gelişmiş Discord Botu • Kesintisiz maç ve skor takip sistemi aktif!")
     await ctx.send(embed=embed)
 
 keep_alive()
