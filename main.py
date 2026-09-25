@@ -111,7 +111,7 @@ MILYONER_VERITABANI = {
         {"soru": "Resmi bir futbol maçında bir takımın sahada en az kaç oyuncusu kalırsa maç tatil edilir?", "secenekler": ["A) 5 oyuncu", "B) 6 oyuncu", "C) 7 oyuncu", "D) 9 oyuncu"], "cevap": "c"}
     ],
     "genel": [
-        {"soru": "Güneş sistemindeki en büyük gezegen aşağıdakilerden hangisidir?", "secenekler": ["A) Satürn", "B) Jüpiter", "C) Neptün", "D) Mars"], "cevap": "b"},
+        {"soru": "Güneş sistemindeki en büyük gezegen hangisidir?", "secenekler": ["A) Satürn", "B) Jüpiter", "C) Neptün", "D) Mars"], "cevap": "b"},
         {"soru": "Mona Lisa tablosunu çizen dünyaca ünlü İtalyan sanatçı ve deha kimdir?", "secenekler": ["A) Donatello", "B) Leonardo da Vinci", "C) Michelangelo", "D) Raphael"], "cevap": "b"},
         {"soru": "Nobel Ödülleri hangi ülkede verilmektedir?", "secenekler": ["A) Almanya", "B) İsviçre", "C) İsveç", "D) Fransa"], "cevap": "c"},
         {"soru": "Periyodik tablonun ilk elementi ve evrende en bol bulunan kimyasal element hangisidir?", "secenekler": ["A) Helyum", "B) Oksijen", "C) Hidrojen", "D) Karbon"], "cevap": "c"},
@@ -519,7 +519,7 @@ async def on_message(message):
 # --- 5. OYUN & SPOR KOMUTLARI ---
 @bot.command(name="skor")
 async def skor(ctx):
-    # CL: Şampiyonlar Ligi, TR1: Süper Lig, EC: Avrupa Şampiyonası (Milli Maçlar)
+    # status filtresi kaldırıldı, böylece o hafta oynanan tüm maçlar (yaklaşan, canlı veya biten) listelenir
     url = "https://api.football-data.org/v4/matches?competitions=CL,TR1,EC"
     headers = {"X-Auth-Token": os.environ.get("FOOTBALL_API_KEY", "")}
     
@@ -531,10 +531,10 @@ async def skor(ctx):
                     matches = data.get("matches", [])
                     
                     if not matches:
-                        await ctx.send("ℹ️ Şu an Süper Lig, Şampiyonlar Ligi veya Milli maç takviminde gösterilecek güncel maç bulunamadı.")
+                        await ctx.send("ℹ️ Takvimde gösterilecek maç bulunamadı.")
                         return
                     
-                    embed = discord.Embed(title="⚽ Süper Lig, Avrupa & Milli Takım Maçları", color=discord.Color.green())
+                    embed = discord.Embed(title="⚽ Süper Lig, Avrupa & Milli Maçlar", color=discord.Color.green())
                     count = 0
                     for match in matches:
                         comp = match.get("competition", {}).get("name", "Lig")
@@ -544,7 +544,15 @@ async def skor(ctx):
                         score_away = match['score']['fullTime']['away']
                         status = match['status']
                         
-                        durum = "Bitti" if status == "FINISHED" else ("Canlı 🔴" if status == "IN_PLAY" else "Başlamadı")
+                        if status == "FINISHED":
+                            durum = "Bitti"
+                        elif status == "IN_PLAY" or status == "PAUSED":
+                            durum = "Canlı 🔴"
+                        else:
+                            # Maç henüz başlamadıysa tarih/saat göster
+                            utc_time = match.get('utcDate', '')
+                            saat = utc_time[11:16] if len(utc_time) >= 16 else "Yakında"
+                            durum = f"Saat: {saat} UTC"
                         
                         s_home = score_home if score_home is not None else "0"
                         s_away = score_away if score_away is not None else "0"
@@ -916,7 +924,7 @@ async def yardim(ctx):
     embed.add_field(
         name="⚽ 1. Spor & Skorlar",
         value=(
-            "• `!skor` - Süper Lig, Şampiyonlar Ligi ve Milli Maç skorlarını gösterir"
+            "• `!skor` - Süper Lig, Şampiyonlar Ligi ve Milli Maç fikstür/skorlarını gösterir"
         ),
         inline=False
     )
@@ -978,7 +986,7 @@ async def yardim(ctx):
         inline=False
     )
 
-    embed.set_footer(text="Gelişmiş Discord Botu • Süper Lig, Şampiyonlar Ligi ve Milli Maçlar aktif!")
+    embed.set_footer(text="Gelişmiş Discord Botu • Fikstür ve maç takip sistemi aktif!")
     await ctx.send(embed=embed)
 
 keep_alive()
