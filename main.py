@@ -111,7 +111,7 @@ MILYONER_VERITABANI = {
         {"soru": "Resmi bir futbol maçında bir takımın sahada en az kaç oyuncusu kalırsa maç tatil edilir?", "secenekler": ["A) 5 oyuncu", "B) 6 oyuncu", "C) 7 oyuncu", "D) 9 oyuncu"], "cevap": "c"}
     ],
     "genel": [
-        {"soru": "Güneş sistemindeki en büyük gezegen hangisidir?", "secenekler": ["A) Satürn", "B) Jüpiter", "C) Neptün", "D) Mars"], "cevap": "b"},
+        {"soru": "Güneş sistemindeki en büyük gezegen aşağıdakilerden hangisidir?", "secenekler": ["A) Satürn", "B) Jüpiter", "C) Neptün", "D) Mars"], "cevap": "b"},
         {"soru": "Mona Lisa tablosunu çizen dünyaca ünlü İtalyan sanatçı ve deha kimdir?", "secenekler": ["A) Donatello", "B) Leonardo da Vinci", "C) Michelangelo", "D) Raphael"], "cevap": "b"},
         {"soru": "Nobel Ödülleri hangi ülkede verilmektedir?", "secenekler": ["A) Almanya", "B) İsviçre", "C) İsveç", "D) Fransa"], "cevap": "c"},
         {"soru": "Periyodik tablonun ilk elementi ve evrende en bol bulunan kimyasal element hangisidir?", "secenekler": ["A) Helyum", "B) Oksijen", "C) Hidrojen", "D) Karbon"], "cevap": "c"},
@@ -519,7 +519,7 @@ async def on_message(message):
 # --- 5. OYUN & SPOR KOMUTLARI ---
 @bot.command(name="skor")
 async def skor(ctx):
-    # status filtresi kaldırıldı, böylece o hafta oynanan tüm maçlar (yaklaşan, canlı veya biten) listelenir
+    # Tarih filtresi kaldırıldı, böylece sistem hem gelecek maçları hem de en güncel fikstürü getirir
     url = "https://api.football-data.org/v4/matches?competitions=CL,TR1,EC"
     headers = {"X-Auth-Token": os.environ.get("FOOTBALL_API_KEY", "")}
     
@@ -531,10 +531,10 @@ async def skor(ctx):
                     matches = data.get("matches", [])
                     
                     if not matches:
-                        await ctx.send("ℹ️ Takvimde gösterilecek maç bulunamadı.")
+                        await ctx.send("ℹ️ Şu an gösterilecek maç takvimi bulunamadı.")
                         return
                     
-                    embed = discord.Embed(title="⚽ Süper Lig, Avrupa & Milli Maçlar", color=discord.Color.green())
+                    embed = discord.Embed(title="⚽ Süper Lig, Avrupa & Milli Maçlar (Fikstür)", color=discord.Color.green())
                     count = 0
                     for match in matches:
                         comp = match.get("competition", {}).get("name", "Lig")
@@ -543,16 +543,22 @@ async def skor(ctx):
                         score_home = match['score']['fullTime']['home']
                         score_away = match['score']['fullTime']['away']
                         status = match['status']
+                        utc_date = match.get('utcDate', '') # Örn: 2026-06-11T19:00:00Z
                         
+                        # Tarih ve saat formatını düzenle
+                        tarih_saat = "Yakında"
+                        if len(utc_date) >= 16:
+                            gun = utc_date[8:10]
+                            ay = utc_date[5:7]
+                            saat = utc_date[11:16]
+                            tarih_saat = f"{gun}.{ay} - {saat} UTC"
+
                         if status == "FINISHED":
                             durum = "Bitti"
                         elif status == "IN_PLAY" or status == "PAUSED":
                             durum = "Canlı 🔴"
                         else:
-                            # Maç henüz başlamadıysa tarih/saat göster
-                            utc_time = match.get('utcDate', '')
-                            saat = utc_time[11:16] if len(utc_time) >= 16 else "Yakında"
-                            durum = f"Saat: {saat} UTC"
+                            durum = f"Tarih: {tarih_saat}"
                         
                         s_home = score_home if score_home is not None else "0"
                         s_away = score_away if score_away is not None else "0"
@@ -570,7 +576,7 @@ async def skor(ctx):
                 else:
                     await ctx.send("⚠️ API anahtarı (FOOTBALL_API_KEY) bulunamadı veya geçersiz! Lütfen Replit Secrets kısmından ekleyin.")
         except Exception as e:
-            await ctx.send(f"⚠️ Maç skorları çekilirken bir hata oluştu: `{e}`")
+            await ctx.send(f"⚠️ Maçlar çekilirken bir hata oluştu: `{e}`")
 
 @bot.command(name="milyoner")
 async def milyoner(ctx, kategori: str = None):
@@ -986,7 +992,7 @@ async def yardim(ctx):
         inline=False
     )
 
-    embed.set_footer(text="Gelişmiş Discord Botu • Fikstür ve maç takip sistemi aktif!")
+    embed.set_footer(text="Gelişmiş Discord Botu • Fikstür ve gelecek maçlar aktif!")
     await ctx.send(embed=embed)
 
 keep_alive()
