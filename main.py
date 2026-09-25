@@ -1,6 +1,7 @@
 import os
 import random
 import asyncio
+import aiohttp
 import discord
 from discord.ext import commands, tasks
 from keep_alive import keep_alive
@@ -515,7 +516,53 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-# --- 5. OYUN KOMUTLARI ---
+# --- 5. OYUN & SPOR KOMUTLARI ---
+@bot.command(name="skor")
+async def skor(ctx):
+    url = "https://api.football-data.org/v4/matches?competitions=CL,TR1"
+    headers = {"X-Auth-Token": os.environ.get("FOOTBALL_API_KEY", "")}
+    
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.get(url, headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    matches = data.get("matches", [])
+                    
+                    if not matches:
+                        await ctx.send("ℹ️ Şu an Süper Lig veya Şampiyonlar Ligi'nde gösterilecek güncel/canlı maç bulunamadı.")
+                        return
+                    
+                    embed = discord.Embed(title="⚽ Süper Lig & Avrupa Maç Skorları", color=discord.Color.green())
+                    count = 0
+                    for match in matches:
+                        comp = match.get("competition", {}).get("name", "Lig")
+                        home = match['homeTeam']['name']
+                        away = match['awayTeam']['name']
+                        score_home = match['score']['fullTime']['home']
+                        score_away = match['score']['fullTime']['away']
+                        status = match['status']
+                        
+                        durum = "Bitti" if status == "FINISHED" else ("Canlı 🔴" if status == "IN_PLAY" else "Başlamadı")
+                        
+                        s_home = score_home if score_home is not None else "0"
+                        s_away = score_away if score_away is not None else "0"
+                        
+                        embed.add_field(
+                            name=comp,
+                            value=f"**{home}** {s_home} - {s_away} **{away}** *({durum})*",
+                            inline=False
+                        )
+                        count += 1
+                        if count >= 8:
+                            break
+                    
+                    await ctx.send(embed=embed)
+                else:
+                    await ctx.send("⚠️ API anahtarı (FOOTBALL_API_KEY) bulunamadı veya geçersiz! Lütfen Replit Secrets kısmından ekleyin.")
+        except Exception as e:
+            await ctx.send(f"⚠️ Skorlar çekilirken bir hata oluştu: `{e}`")
+
 @bot.command(name="milyoner")
 async def milyoner(ctx, kategori: str = None):
     if ctx.channel.id in milyoner_oyunlari:
@@ -599,7 +646,7 @@ async def hizli_yaz(ctx):
 async def satranc(ctx):
     embed = discord.Embed(
         title="♟️ Çevrimiçi Satranç Masası",
-        description="Arkadaşlarınla anında satranç oynamak için aşağıdaki butona tıkla! Tarayıcında veya mobil cihazında saniyeler içinde maç yapabilirsin.",
+        description="Arkadaşlarınla anında satranç oynamak için aşağıdaki butona tıkla!",
         color=discord.Color.dark_theme()
     )
     view = discord.ui.View()
@@ -610,7 +657,7 @@ async def satranc(ctx):
 async def gartic(ctx):
     embed = discord.Embed(
         title="🎨 Gartic Phone Odası",
-        description="Arkadaşlarınla eğlenceli çizim ve telefon kulübesi oyunu oynamak için hemen özel oda kur!",
+        description="Arkadaşlarınla eğlenceli çizim oynamak için hemen özel oda kur!",
         color=discord.Color.orange()
     )
     view = discord.ui.View()
@@ -866,7 +913,15 @@ async def yardim(ctx):
     )
     
     embed.add_field(
-        name="🎮 1. Oyun & Eğlence",
+        name="⚽ 1. Spor & Skorlar",
+        value=(
+            "• `!skor` - Süper Lig ve Şampiyonlar Ligi anlık maç skorlarını gösterir"
+        ),
+        inline=False
+    )
+
+    embed.add_field(
+        name="🎮 2. Oyun & Eğlence",
         value=(
             "• `!milyoner [kategori]` - 5 turlu Milyoner yarışması\n"
             "• `!adam-asmaca [kategori]` - Adam asmaca oyunu\n"
@@ -880,7 +935,7 @@ async def yardim(ctx):
     )
     
     embed.add_field(
-        name="👤 2. Üye & Profil",
+        name="👤 3. Üye & Profil",
         value=(
             "• `!seviye` - Mesaj XP ve seviyeni gösterir\n"
             "• `!ses-seviye` - Ses kanalı aktiflik puanını gösterir\n"
@@ -894,7 +949,7 @@ async def yardim(ctx):
     )
 
     embed.add_field(
-        name="🚪 3. Ses Odaları",
+        name="🚪 4. Ses Odaları",
         value=(
             "• `!git @kullanıcı` - Belirttiğin kişinin ses kanalına ışınlanırsın\n"
             "• `!oda-kapat` - Kendi özel ses odanı kilitler\n"
@@ -905,7 +960,7 @@ async def yardim(ctx):
     )
 
     embed.add_field(
-        name="🛠️ 4. Yönetim & Yetkili Komutları",
+        name="🛠️ 5. Yönetim & Yetkili Komutları",
         value=(
             "• `!3saatliksoru #kanal` - 3 saatlik soruların atılacağı kanalı ayarlar (Yönetici)\n"
             "• `!kurulum` - İstatistik sayaç kanallarını kurar\n"
@@ -922,7 +977,7 @@ async def yardim(ctx):
         inline=False
     )
 
-    embed.set_footer(text="Gelişmiş Discord Botu • Gartic Phone entegrasyonu aktif!")
+    embed.set_footer(text="Gelişmiş Discord Botu • Süper Lig ve Avrupa skor takibi aktif!")
     await ctx.send(embed=embed)
 
 keep_alive()
