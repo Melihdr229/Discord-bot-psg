@@ -47,7 +47,17 @@ ESPRILER = [
     "Neden matematiğim kötü? Çünkü hayatın kendisi bir problem! 📐"
 ]
 
-# 20 Farklı Yeni Refleks Kelimesi/Komutu
+KANAL_ESPRILERI = [
+    "Kaynıyor ☕",
+    "Gülmekten Öldük 💀",
+    "Taksi Dönüyor 🚖",
+    "Lahana Bahçesi 🥬",
+    "Musluk Oturdu 🚰",
+    "Boş Yapma Sesleri 🎙️",
+    "Fikstür Arıyoruz ⚽",
+    "Hayat Boş Bisiklet 🚲"
+]
+
 REFLEKS_KELIMELERI = [
     "!basla", "!hizli", "!yakala", "!tikla", "!vur", 
     "!kac", "!atla", "!tut", "!cek", "!tetik", 
@@ -215,7 +225,8 @@ async def on_dakika_tarama_ve_refleks():
                     en_kalabalik_kanal = vc
             
             if en_kalabalik_kanal and max_kisi > 0:
-                yeni_isim = f"🔥 {max_kisi} Kişi | Kaynıyor ☕"
+                rastgele_kanal_espri = random.choice(KANAL_ESPRILERI)
+                yeni_isim = f"🔥 {max_kisi} Kişi | {rastgele_kanal_espri}"
                 try:
                     await en_kalabalik_kanal.edit(name=yeni_isim)
                 except:
@@ -1039,13 +1050,13 @@ async def yardim(ctx):
             "• `!yavaşmod <saniye>` - Kanalı yavaş moda alır\n"
             "• `!kilit` / `!aç` - Kanalı mesajlara kapatır / açar\n"
             "• `!kanal-aç <isim>` - Yeni yazı kanalı açar\n"
-            "• `!sil <sayı>` - Toplu mesaj siler\n"
+            "• `!sil <sayý>` - Toplu mesaj siler\n"
             "• `!kick` / `!ban` - Üye atma ve yasaklama"
         ),
         inline=False
     )
 
-    embed.set_footer(text="Gelişmiş Discord Botu • 10 dakikalık tarama ve refleks sistemi aktif!")
+    embed.set_footer(text="Gelişmiş Discord Botu • Ses kanalına espri ekleme aktif!")
     await ctx.send(embed=embed)
 
 keep_alive()
