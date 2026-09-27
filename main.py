@@ -1,7 +1,6 @@
 import os
 import random
 import asyncio
-import aiohttp
 import discord
 from discord.ext import commands, tasks
 from keep_alive import keep_alive
@@ -26,12 +25,25 @@ aktif_sorular = {}
 adam_asmaca_oyunlari = {} 
 milyoner_oyunlari = {} 
 hizli_yaz_oyunlari = {} 
+refleks_oyunlari = {}     # Aktif refleks oyunları takibi
 soru_kanallari = {} 
+refleks_kanallari = {}    # 1 saatte bir otomatik refleks atılacak kanallar
 
 OTO_CEVAPLAR = {
     "sa": "as",
     "selamun aleyküm": "aleyküm selam"
 }
+
+ESPRILER = [
+    "Adamın biri gülmüş, karısı da lahana demiş. 🥬",
+    "Geçen gün taksi çevirdim, hala dönüyor. 🚖",
+    "Temel kalkmış, musluk oturmuş. 🚰",
+    "Kelebeğin ömrü bir gün derler, seninkisi ne zaman bitiyor acaba? 🦋",
+    "Aydan gelen misafire ne denir? Ay-nasıl geldin? 🌕",
+    "Beni horoz mu tırmaladı, yoksa sen her zamanki gibi komik mi sanıyorsun kendini? 🐓",
+    "Denizde balık yan yan yürür, senin bu yürüyüş neyin nesi? 🐟",
+    "Hayat boştu, bisiklete biniyorum artık. 🚲"
+]
 
 YASAKLI_KELIMELER = [
     "allahı sikeyim", "kuranı sikeyim", "allahı", "kuranı", 
@@ -133,6 +145,7 @@ async def on_ready():
     print(f"Giriş yapıldı! Bot aktif: {bot.user}")
     istatistik_guncelle.start()
     saatlik_soru_gonderici.start()
+    saatlik_otomatik_refleks.start()
 
 # --- 0. OTOMATİK İSTATİSTİK GÜNCELLEYİCİ LOOP ---
 @tasks.loop(minutes=5)
@@ -168,12 +181,50 @@ async def saatlik_soru_gonderici():
             if kanal:
                 aktif_sorular[kanal.id] = secilen["cevap"]
                 try:
-                    await kanal.send(f"⏰ **3 Saatte Bir Gelen Bilgi Zamanı!**\n🧠 {secilen['soru']}\n*(Doğru cevabı yazarak 'Çok akıllısın maşallah!' övgüsünü kazan!)*")
+                    await kanal.send(f"⏰ **3 Saatte Bir Gelen Bilgi Zamanı!**\n🧠 {secilen['soru']}\n*(Doğru cevabı yazarak övgüyü kazan!)*")
                 except:
                     pass
 
 @saatlik_soru_gonderici.before_loop
 async def before_saatlik_soru():
+    await bot.wait_until_ready()
+
+# --- 0.2. 💬 SOHBET KANALINA 1 SAATTE BİR OTOMATİK REFLEKS OYUNU ---
+@tasks.loop(hours=1)
+async def saatlik_otomatik_refleks():
+    for guild_id, kanal_id in refleks_kanallari.items():
+        guild = bot.get_guild(guild_id)
+        if guild:
+            kanal = guild.get_channel(kanal_id)
+            if kanal:
+                if kanal.id in refleks_oyunlari:
+                    continue # Zaten açık oyun varsa geç
+                
+                import time
+                refleks_oyunlari[kanal.id] = {
+                    "baslangic": time.time(),
+                    "aktif": False
+                }
+                
+                try:
+                    await kanal.send("⚡ **Saatlik Refleks Vakti Geldi!**\nHazırlanın... Rastgele bir sürede **'BAŞLA'** komutu patlayacak!")
+                except:
+                    pass
+                
+                # 5 ila 15 saniye arası rastgele bir bekleme süresi
+                bekleme = random.randint(5, 15)
+                await asyncio.sleep(bekleme)
+                
+                if kanal.id in refleks_oyunlari:
+                    refleks_oyunlari[kanal.id]["aktif"] = True
+                    refleks_oyunlari[kanal.id]["baslangic"] = time.time()
+                    try:
+                        await kanal.send("🚨 **ŞİMDİ YAZ! HIZLI OL!** `!basla` yazan ilk kişi kazanır!")
+                    except:
+                        pass
+
+@saatlik_otomatik_refleks.before_loop
+async def before_otomatik_refleks():
     await bot.wait_until_ready()
 
 # --- 1. OTOMATİK ROL VE HOŞ GELDİN MESAJI ---
@@ -407,6 +458,17 @@ async def on_message(message):
 
     mesaj_metni = message.content.lower().strip()
     
+    # Refleks Oyunu Kontrolü
+    if message.channel.id in refleks_oyunlari:
+        oyun = refleks_oyunlari[message.channel.id]
+        if oyun["aktif"] and mesaj_metni == "!basla":
+            import time
+            gecen_sure = round(time.time() - oyun["baslangic"], 2)
+            secilen_espri = random.choice(ESPRILER)
+            
+            await message.channel.send(f"🏆 **Tebrikler {message.author.mention}!** Şimşek gibi çakarak {gecen_sure} saniyede butona bastın ve yarışı kazandın!\n\n🎁 **Ödülün (Günün Esprisi):** {secilen_espri}")
+            del refleks_oyunlari[message.channel.id]
+
     # Hızlı Yazma Yarışması Kontrolü
     if message.channel.id in hizli_yaz_oyunlari:
         hedef_cumle = hizli_yaz_oyunlari[message.channel.id]
@@ -516,66 +578,28 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-# --- 5. OYUN & SPOR KOMUTLARI ---
-@bot.command(name="skor")
-async def skor(ctx):
-    url = "https://api.football-data.org/v4/matches"
-    headers = {"X-Auth-Token": os.environ.get("FOOTBALL_API_KEY", "")}
-    
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.get(url, headers=headers) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    matches = data.get("matches", [])
-                    
-                    if not matches:
-                        await ctx.send("ℹ️ Şu an sistemde listelenecek maç verisi bulunamadı.")
-                        return
-                    
-                    embed = discord.Embed(title="⚽ Canlı Maçlar & Fikstür", color=discord.Color.green())
-                    count = 0
-                    for match in matches:
-                        comp = match.get("competition", {}).get("name", "Futbol Maçı")
-                        home = match['homeTeam']['name']
-                        away = match['awayTeam']['name']
-                        score_home = match['score']['fullTime']['home']
-                        score_away = match['score']['fullTime']['away']
-                        status = match['status']
-                        utc_date = match.get('utcDate', '')
-                        
-                        tarih_saat = "Yakında"
-                        if len(utc_date) >= 16:
-                            gun = utc_date[8:10]
-                            ay = utc_date[5:7]
-                            saat = utc_date[11:16]
-                            tarih_saat = f"{gun}.{ay} - {saat} UTC"
+# --- 5. OYUN KOMUTLARI ---
+@bot.command(name="refleks")
+async def refleks(ctx):
+    if ctx.channel.id in refleks_oyunlari:
+        await ctx.send("⚠️ Bu kanalda zaten devam eden bir refleks yarışı var!")
+        return
 
-                        if status == "FINISHED":
-                            durum = "Bitti"
-                        elif status == "IN_PLAY" or status == "PAUSED":
-                            durum = "Canlı 🔴"
-                        else:
-                            durum = f"Tarih: {tarih_saat}"
-                        
-                        s_home = score_home if score_home is not None else "0"
-                        s_away = score_away if score_away is not None else "0"
-                        
-                        embed.add_field(
-                            name=comp,
-                            value=f"**{home}** {s_home} - {s_away} **{away}** *({durum})*",
-                            inline=False
-                        )
-                        count += 1
-                        if count >= 8:
-                            break
-                    
-                    await ctx.send(embed=embed)
-                else:
-                    text_resp = await response.text()
-                    await ctx.send(f"⚠️ API Hatası! Kod: `{response.status}` | Detay: `{text_resp}`")
-        except Exception as e:
-            await ctx.send(f"⚠️ Maçlar çekilirken bir hata oluştu: `{e}`")
+    import time
+    refleks_oyunlari[ctx.channel.id] = {
+        "baslangic": time.time(),
+        "aktif": False
+    }
+
+    await ctx.send("⚡ **Refleks Oyunu Başladı!** Dikkatli ol, birazdan `!basla` komutu verilecek...")
+    
+    bekleme = random.randint(4, 10)
+    await asyncio.sleep(bekleme)
+
+    if ctx.channel.id in refleks_oyunlari:
+        refleks_oyunlari[ctx.channel.id]["aktif"] = True
+        refleks_oyunlari[ctx.channel.id]["baslangic"] = time.time()
+        await ctx.send("🚨 **ŞİMDİ YAZ!** Sohbete ilk `!basla` yazan kazanır!")
 
 @bot.command(name="milyoner")
 async def milyoner(ctx, kategori: str = None):
@@ -812,6 +836,12 @@ async def saatlik_soru_kanal_ayarla(ctx, kanal: discord.TextChannel):
     soru_kanallari[ctx.guild.id] = kanal.id
     await ctx.send(f"✅ 3 saatlik bilgi sorularının gönderileceği kanal başarıyla {kanal.mention} olarak ayarlandı!")
 
+@bot.command(name="refleks-kanal")
+@commands.has_permissions(administrator=True)
+async def refleks_kanal_ayarla(ctx, kanal: discord.TextChannel):
+    refleks_kanallari[ctx.guild.id] = kanal.id
+    await ctx.send(f"✅ 1 saatte bir otomatik refleks oyununun gönderileceği sohbet kanalı başarıyla {kanal.mention} olarak ayarlandı!")
+
 @bot.command(name="autorol-ayarla")
 @commands.has_permissions(administrator=True)
 async def autorol_ayarla(ctx, *, rol_adi: str):
@@ -927,19 +957,12 @@ async def yardim(ctx):
     )
     
     embed.add_field(
-        name="⚽ 1. Spor & Skorlar",
+        name="⚡ 1. Oyun & Refleks",
         value=(
-            "• `!skor` - Güncel futbol maçlarını ve fikstürü gösterir"
-        ),
-        inline=False
-    )
-
-    embed.add_field(
-        name="🎮 2. Oyun & Eğlence",
-        value=(
+            "• `!refleks` - Refleks yarışmasını manuel başlatır\n"
+            "• `!hizli-yaz` - Hızlı yazma yarışması\n"
             "• `!milyoner [kategori]` - 5 turlu Milyoner yarışması\n"
             "• `!adam-asmaca [kategori]` - Adam asmaca oyunu\n"
-            "• `!hizli-yaz` - Hızlı yazma yarışması\n"
             "• `!satranç` - Çevrimiçi satranç tahtası açar\n"
             "• `!gartic` - Gartic Phone özel oda kurma linki atar\n"
             "• `!tahmin` - Sayı tahmin oyunu (1-100)\n"
@@ -949,7 +972,7 @@ async def yardim(ctx):
     )
     
     embed.add_field(
-        name="👤 3. Üye & Profil",
+        name="👤 2. Üye & Profil",
         value=(
             "• `!seviye` - Mesaj XP ve seviyeni gösterir\n"
             "• `!ses-seviye` - Ses kanalı aktiflik puanını gösterir\n"
@@ -963,7 +986,7 @@ async def yardim(ctx):
     )
 
     embed.add_field(
-        name="🚪 4. Ses Odaları",
+        name="🚪 3. Ses Odaları",
         value=(
             "• `!git @kullanıcı` - Belirttiğin kişinin ses kanalına ışınlanırsın\n"
             "• `!oda-kapat` - Kendi özel ses odanı kilitler\n"
@@ -974,9 +997,10 @@ async def yardim(ctx):
     )
 
     embed.add_field(
-        name="🛠️ 5. Yönetim & Yetkili Komutları",
+        name="🛠️ 4. Yönetim & Yetkili Komutları",
         value=(
-            "• `!3saatliksoru #kanal` - 3 saatlik soruların atılacağı kanalı ayarlar (Yönetici)\n"
+            "• `!refleks-kanal #kanal` - 1 saatte bir otomatik refleks oyununun atılacağı kanalı ayarlar\n"
+            "• `!3saatliksoru #kanal` - 3 saatlik soruların atılacağı kanalı ayarlar\n"
             "• `!kurulum` - İstatistik sayaç kanallarını kurar\n"
             "• `!autorol-ayarla <rol>` - Yeni gelenlere otomatik rol verir\n"
             "• `!çekiliş <saniye> <ödül>` - Ödüllü çekiliş başlatır\n"
@@ -991,7 +1015,7 @@ async def yardim(ctx):
         inline=False
     )
 
-    embed.set_footer(text="Gelişmiş Discord Botu • Kesintisiz maç ve skor takip sistemi aktif!")
+    embed.set_footer(text="Gelişmiş Discord Botu • Saatlik refleks ve espri ödüllü sistem aktif!")
     await ctx.send(embed=embed)
 
 keep_alive()
