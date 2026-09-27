@@ -25,9 +25,9 @@ aktif_sorular = {}
 adam_asmaca_oyunlari = {} 
 milyoner_oyunlari = {} 
 hizli_yaz_oyunlari = {} 
-refleks_oyunlari = {}     # Aktif refleks oyunları takibi
+refleks_oyunlari = {}     
 soru_kanallari = {} 
-refleks_kanallari = {}    # 1 saatte bir otomatik refleks atılacak kanallar
+refleks_kanallari = {}    
 
 OTO_CEVAPLAR = {
     "sa": "as",
@@ -42,7 +42,17 @@ ESPRILER = [
     "Aydan gelen misafire ne denir? Ay-nasıl geldin? 🌕",
     "Beni horoz mu tırmaladı, yoksa sen her zamanki gibi komik mi sanıyorsun kendini? 🐓",
     "Denizde balık yan yan yürür, senin bu yürüyüş neyin nesi? 🐟",
-    "Hayat boştu, bisiklete biniyorum artık. 🚲"
+    "Hayat boştu, bisiklete biniyorum artık. 🚲",
+    "Gözlerim kör oldu formattan sonra, ekranı sildim düzeldi. 💻",
+    "Neden matematiğim kötü? Çünkü hayatın kendisi bir problem! 📐"
+]
+
+# 20 Farklı Yeni Refleks Kelimesi/Komutu
+REFLEKS_KELIMELERI = [
+    "!basla", "!hizli", "!yakala", "!tikla", "!vur", 
+    "!kac", "!atla", "!tut", "!cek", "!tetik", 
+    "!firlat", "!dokun", "!vurur", "!zip", "!kos", 
+    "!savur", "!patlat", "!carp", "!uyan", "!yakalaaz"
 ]
 
 YASAKLI_KELIMELER = [
@@ -145,7 +155,7 @@ async def on_ready():
     print(f"Giriş yapıldı! Bot aktif: {bot.user}")
     istatistik_guncelle.start()
     saatlik_soru_gonderici.start()
-    saatlik_otomatik_refleks.start()
+    on_dakika_tarama_ve_refleks.start()
 
 # --- 0. OTOMATİK İSTATİSTİK GÜNCELLEYİCİ LOOP ---
 @tasks.loop(minutes=5)
@@ -189,42 +199,60 @@ async def saatlik_soru_gonderici():
 async def before_saatlik_soru():
     await bot.wait_until_ready()
 
-# --- 0.2. 💬 SOHBET KANALINA 1 SAATTE BİR OTOMATİK REFLEKS OYUNU ---
-@tasks.loop(hours=1)
-async def saatlik_otomatik_refleks():
+# --- 0.2. ⏱️ HER 10 DAKİKADA BİR KANAL TARAMA VE REFLEKS OYUNU ---
+@tasks.loop(minutes=10)
+async def on_dakika_tarama_ve_refleks():
     for guild_id, kanal_id in refleks_kanallari.items():
         guild = bot.get_guild(guild_id)
         if guild:
+            # 1. En kalabalık ses kanalını bul ve ismini esprili yap
+            en_kalabalik_kanal = None
+            max_kisi = 0
+            for vc in guild.voice_channels:
+                kisi_sayisi = len([m for m in vc.members if not m.bot])
+                if kisi_sayisi > max_kisi:
+                    max_kisi = kisi_sayisi
+                    en_kalabalik_kanal = vc
+            
+            if en_kalabalik_kanal and max_kisi > 0:
+                yeni_isim = f"🔥 {max_kisi} Kişi | Kaynıyor ☕"
+                try:
+                    await en_kalabalik_kanal.edit(name=yeni_isim)
+                except:
+                    pass
+
+            # 2. Refleks oyununu başlat
             kanal = guild.get_channel(kanal_id)
             if kanal:
                 if kanal.id in refleks_oyunlari:
-                    continue # Zaten açık oyun varsa geç
+                    continue 
                 
+                rastgele_kelime = random.choice(REFLEKS_KELIMELERI)
                 import time
                 refleks_oyunlari[kanal.id] = {
                     "baslangic": time.time(),
-                    "aktif": False
+                    "aktif": False,
+                    "kelime": rastgele_kelime
                 }
                 
                 try:
-                    await kanal.send("⚡ **Saatlik Refleks Vakti Geldi!**\nHazırlanın... Rastgele bir sürede **'BAŞLA'** komutu patlayacak!")
+                    await kanal.send("⚡ **10 Dakikalık Hızlı Refleks Vakti!**\nHazırlanın... Rastgele bir komut patlayacak!")
                 except:
                     pass
                 
-                # 5 ila 15 saniye arası rastgele bir bekleme süresi
-                bekleme = random.randint(5, 15)
+                bekleme = random.randint(3, 8)
                 await asyncio.sleep(bekleme)
                 
                 if kanal.id in refleks_oyunlari:
                     refleks_oyunlari[kanal.id]["aktif"] = True
                     refleks_oyunlari[kanal.id]["baslangic"] = time.time()
                     try:
-                        await kanal.send("🚨 **ŞİMDİ YAZ! HIZLI OL!** `!basla` yazan ilk kişi kazanır!")
+                        await kanal.send(f"🚨 **ŞİMDİ YAZ!** Sohbete ilk **`{rastgele_kelime}`** yazan kazanır!")
                     except:
                         pass
 
-@saatlik_otomatik_refleks.before_loop
-async def before_otomatik_refleks():
+@on_dakika_tarama_ve_refleks.before_loop
+async def before_on_dakika_tarama():
     await bot.wait_until_ready()
 
 # --- 1. OTOMATİK ROL VE HOŞ GELDİN MESAJI ---
@@ -461,12 +489,12 @@ async def on_message(message):
     # Refleks Oyunu Kontrolü
     if message.channel.id in refleks_oyunlari:
         oyun = refleks_oyunlari[message.channel.id]
-        if oyun["aktif"] and mesaj_metni == "!basla":
+        if oyun["aktif"] and mesaj_metni == oyun["kelime"]:
             import time
             gecen_sure = round(time.time() - oyun["baslangic"], 2)
             secilen_espri = random.choice(ESPRILER)
             
-            await message.channel.send(f"🏆 **Tebrikler {message.author.mention}!** Şimşek gibi çakarak {gecen_sure} saniyede butona bastın ve yarışı kazandın!\n\n🎁 **Ödülün (Günün Esprisi):** {secilen_espri}")
+            await message.channel.send(f"🏆 **Tebrikler {message.author.mention}!** Şimşek gibi çakarak {gecen_sure} saniyede doğru kelimeyi yazdın ve kazandın!\n\n🎁 **Ödülün (Günün Esprisi):** {secilen_espri}")
             del refleks_oyunlari[message.channel.id]
 
     # Hızlı Yazma Yarışması Kontrolü
@@ -585,21 +613,23 @@ async def refleks(ctx):
         await ctx.send("⚠️ Bu kanalda zaten devam eden bir refleks yarışı var!")
         return
 
+    rastgele_kelime = random.choice(REFLEKS_KELIMELERI)
     import time
     refleks_oyunlari[ctx.channel.id] = {
         "baslangic": time.time(),
-        "aktif": False
+        "aktif": False,
+        "kelime": rastgele_kelime
     }
 
-    await ctx.send("⚡ **Refleks Oyunu Başladı!** Dikkatli ol, birazdan `!basla` komutu verilecek...")
+    await ctx.send("⚡ **Refleks Oyunu Başladı!** Dikkatli ol, birazdan komut patlayacak...")
     
-    bekleme = random.randint(4, 10)
+    bekleme = random.randint(3, 7)
     await asyncio.sleep(bekleme)
 
     if ctx.channel.id in refleks_oyunlari:
         refleks_oyunlari[ctx.channel.id]["aktif"] = True
         refleks_oyunlari[ctx.channel.id]["baslangic"] = time.time()
-        await ctx.send("🚨 **ŞİMDİ YAZ!** Sohbete ilk `!basla` yazan kazanır!")
+        await ctx.send(f"🚨 **ŞİMDİ YAZ!** Sohbete ilk **`{rastgele_kelime}`** yazan kazanır!")
 
 @bot.command(name="milyoner")
 async def milyoner(ctx, kategori: str = None):
@@ -840,7 +870,7 @@ async def saatlik_soru_kanal_ayarla(ctx, kanal: discord.TextChannel):
 @commands.has_permissions(administrator=True)
 async def refleks_kanal_ayarla(ctx, kanal: discord.TextChannel):
     refleks_kanallari[ctx.guild.id] = kanal.id
-    await ctx.send(f"✅ 1 saatte bir otomatik refleks oyununun gönderileceği sohbet kanalı başarıyla {kanal.mention} olarak ayarlandı!")
+    await ctx.send(f"✅ Her 10 dakikada bir otomatik refleks oyununun ve kanal taramasının yapılacağı kanal başarıyla {kanal.mention} olarak ayarlandı!")
 
 @bot.command(name="autorol-ayarla")
 @commands.has_permissions(administrator=True)
@@ -999,7 +1029,7 @@ async def yardim(ctx):
     embed.add_field(
         name="🛠️ 4. Yönetim & Yetkili Komutları",
         value=(
-            "• `!refleks-kanal #kanal` - 1 saatte bir otomatik refleks oyununun atılacağı kanalı ayarlar\n"
+            "• `!refleks-kanal #kanal` - Her 10 dakikada bir otomatik refleks ve ses kanal taramasını ayarlar\n"
             "• `!3saatliksoru #kanal` - 3 saatlik soruların atılacağı kanalı ayarlar\n"
             "• `!kurulum` - İstatistik sayaç kanallarını kurar\n"
             "• `!autorol-ayarla <rol>` - Yeni gelenlere otomatik rol verir\n"
@@ -1015,7 +1045,7 @@ async def yardim(ctx):
         inline=False
     )
 
-    embed.set_footer(text="Gelişmiş Discord Botu • Saatlik refleks ve espri ödüllü sistem aktif!")
+    embed.set_footer(text="Gelişmiş Discord Botu • 10 dakikalık tarama ve refleks sistemi aktif!")
     await ctx.send(embed=embed)
 
 keep_alive()
